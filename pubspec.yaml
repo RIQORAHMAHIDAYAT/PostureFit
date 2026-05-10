@@ -1,0 +1,29 @@
+name: posturefit
+description: PostureFit - Indonesia Atletis Health App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  google_fonts: ^8.1.0
+  flutter_svg: ^2.0.9
+  percent_indicator: ^4.2.3
+  iconsax: ^0.0.8
+  cupertino_icons: ^1.0.6
+  shared_preferences: ^2.3.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
