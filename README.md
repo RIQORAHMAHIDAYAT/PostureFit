@@ -50,7 +50,7 @@ dart --version
 ### Step 1: Clone Repository
 ```bash
 cd path/to/your/projects
-git clone <repository-url>
+git clone https://github.com/RIQORAHMAHIDAYAT/PostureFit.git
 cd Posturefit
 ```
 
