@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import '../../routes/app_routes.dart';
+import 'scan_controller.dart';
 
 class ResultController extends GetxController {
   final RxInt selectedFokus = 0.obs;
@@ -23,7 +25,17 @@ class ResultController extends GetxController {
     selectedLingkungan.value = index;
   }
 
-  void onLihatHasil() {}
+  void onLihatHasil() {
+    // Ambil path gambar dari ScanController yang sudah ada di memory
+    final scanCtrl = Get.isRegistered<ScanController>()
+        ? Get.find<ScanController>()
+        : null;
+    final imagePath = scanCtrl?.capturedImage.value?.path;
+    Get.toNamed(
+      AppRoutes.imagePreview,
+      arguments: {'imagePath': imagePath},
+    );
+  }
   void onAnalysis() {
     Get.toNamed(
       '/analysis-result',

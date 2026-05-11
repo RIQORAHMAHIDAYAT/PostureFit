@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_input_field.dart';
@@ -17,9 +18,18 @@ class RegisterView extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+      body: Builder(
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppTheme.bgColor(context), AppTheme.bgSecondaryColor(context)],
+                )
+              : AppColors.backgroundGradient,
         ),
         child: SafeArea(
           child: Center(
@@ -35,7 +45,9 @@ class RegisterView extends GetView<RegisterController> {
                   Text(
                     'Buat akun dan mulai perjalanan\nkebugaran Anda',
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyMedium,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppTheme.textSecondary(context),
+                    ),
                   ),
                   const SizedBox(height: AppDimensions.paddingXXL),
                   AppCard(
@@ -150,7 +162,7 @@ class RegisterView extends GetView<RegisterController> {
                     'HALAMAN DAFTAR',
                     style: AppTextStyles.captionStyle.copyWith(
                       letterSpacing: 1.5,
-                      color: AppColors.textLight,
+                      color: AppTheme.textSecondary(context),
                     ),
                   ),
                 ],
@@ -158,6 +170,8 @@ class RegisterView extends GetView<RegisterController> {
             ),
           ),
         ),
+          );
+        },
       ),
     );
   }

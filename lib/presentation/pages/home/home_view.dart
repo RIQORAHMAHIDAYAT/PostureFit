@@ -8,6 +8,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/activity_progress_bar.dart';
 import '../../widgets/feature_button.dart';
 import '../../controllers/home_controller.dart';
+import '../../../routes/app_routes.dart';
 
 // HomeBody: dipakai oleh MainView (IndexedStack) — tanpa bottom nav
 class HomeBody extends GetView<HomeController> {
@@ -103,7 +104,9 @@ class _HomeAppBar extends GetView<HomeController> {
                   ),
                 ],
               )),
-          Stack(
+          GestureDetector(
+            onTap: () => Get.toNamed(AppRoutes.notification),
+            child: Stack(
             clipBehavior: Clip.none,
             children: [
               Container(
@@ -136,6 +139,7 @@ class _HomeAppBar extends GetView<HomeController> {
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),

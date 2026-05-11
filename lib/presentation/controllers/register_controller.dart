@@ -16,18 +16,18 @@ class RegisterController extends GetxController {
     isLoading.value = true;
     await Future.delayed(const Duration(seconds: 1));
     isLoading.value = false;
-    Get.offAllNamed(AppRoutes.home);
+    Get.offAllNamed(AppRoutes.main);
   }
 
   void signInWithGoogle() async {
     isLoading.value = true;
     await Future.delayed(const Duration(milliseconds: 800));
     isLoading.value = false;
-    Get.offAllNamed(AppRoutes.home);
+    Get.offAllNamed(AppRoutes.main);
   }
 
   void goToLogin() {
-    Get.back();
+    Get.offNamed(AppRoutes.login);
   }
 
   @override

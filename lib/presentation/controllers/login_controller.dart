@@ -25,7 +25,7 @@ class LoginController extends GetxController {
   }
 
   void goToRegister() {
-    Get.toNamed(AppRoutes.register);
+    Get.offNamed(AppRoutes.register);
   }
 
   @override

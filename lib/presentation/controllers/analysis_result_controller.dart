@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import '../../routes/app_routes.dart';
+import 'scan_controller.dart';
 
 class AnalysisResultController extends GetxController {
   late final double tinggiBadan;
@@ -151,7 +153,16 @@ class AnalysisResultController extends GetxController {
     );
   }
 
-  void onLihatHasil() {}
+  void onLihatHasil() {
+    final scanCtrl = Get.isRegistered<ScanController>()
+        ? Get.find<ScanController>()
+        : null;
+    final imagePath = scanCtrl?.capturedImage.value?.path;
+    Get.toNamed(
+      AppRoutes.imagePreview,
+      arguments: {'imagePath': imagePath},
+    );
+  }
   void onUbahData() => Get.back();
   void onBack() => Get.back();
 }

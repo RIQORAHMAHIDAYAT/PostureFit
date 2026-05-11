@@ -11,4 +11,6 @@ class AppRoutes {
   static const String workoutPlan = '/workout-plan';
   static const String education = '/education';
   static const String profile = '/profile';
+  static const String notification = '/notification';
+  static const String imagePreview = '/image-preview';
 }

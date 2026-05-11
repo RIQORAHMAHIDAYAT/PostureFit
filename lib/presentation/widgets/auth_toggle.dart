@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/theme/app_theme.dart';
 
 class AuthToggle extends StatelessWidget {
   final bool isLogin;
@@ -20,9 +21,9 @@ class AuthToggle extends StatelessWidget {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.inputBackground,
+        color: AppTheme.inputBg(context),
         borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
-        border: Border.all(color: AppColors.inputBorder),
+        border: Border.all(color: AppTheme.borderColor(context)),
       ),
       child: Row(
         children: [
@@ -79,7 +80,9 @@ class _ToggleItem extends StatelessWidget {
             label,
             style: AppTextStyles.bodySmall.copyWith(
               fontWeight: FontWeight.w700,
-              color: isActive ? AppColors.textWhite : AppColors.textSecondary,
+              color: isActive
+                  ? AppColors.textWhite
+                  : AppTheme.textSecondary(context),
               letterSpacing: 0.5,
             ),
           ),

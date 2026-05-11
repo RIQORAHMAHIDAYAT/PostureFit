@@ -121,14 +121,15 @@ class _NavItem extends StatelessWidget {
                 color: isSelected ? Colors.white.withValues(alpha: 0.2) : null,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSM),
               ),
-              child: Opacity(
-                opacity: isSelected ? 1.0 : 0.5,
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.white.withValues(alpha: isSelected ? 1.0 : 0.5),
+                  BlendMode.srcIn,
+                ),
                 child: Image.asset(
                   asset,
                   width: size,
                   height: size,
-                  color: Colors.white,
-                  colorBlendMode: BlendMode.srcIn,
                 ),
               ),
             ),

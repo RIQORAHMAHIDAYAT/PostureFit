@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
 import 'education_controller.dart';
 import 'widgets/education_card.dart';
+import '../../../routes/app_routes.dart';
 
 /// EducationBody: dipakai oleh MainView (IndexedStack) — tanpa bottom nav
 class EducationBody extends GetView<EducationController> {
@@ -22,31 +23,47 @@ class EducationBody extends GetView<EducationController> {
             child: Obx(() {
               if (controller.isLoading.value) {
                 return const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+
+              // Jika sudah ada data dari server, tampilkan list sesungguhnya
+              if (controller.educationList.isNotEmpty) {
+                return RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: controller.fetchEducation,
+                  child: ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppDimensions.paddingLG,
+                      AppDimensions.paddingLG,
+                      AppDimensions.paddingLG,
+                      AppDimensions.paddingXXL + AppDimensions.navBarHeight,
+                    ),
+                    itemCount: controller.educationList.length,
+                    itemBuilder: (context, index) {
+                      return EducationCard(
+                        item: controller.educationList[index],
+                        onTap: () {
+                          // TODO: Navigate to detail view
+                        },
+                      );
+                    },
                   ),
                 );
               }
+
+              // Belum ada data → tampilkan card-card kosong sebagai placeholder
               return ListView.builder(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(
                   AppDimensions.paddingLG,
                   AppDimensions.paddingLG,
                   AppDimensions.paddingLG,
                   AppDimensions.paddingXXL + AppDimensions.navBarHeight,
                 ),
-                itemCount: controller.educationList.length,
-                itemBuilder: (context, index) {
-                  final item = controller.educationList[index];
-                  return EducationCard(
-                    title: item.title,
-                    subtitle: item.subtitle,
-                    category: item.category,
-                    duration: item.duration,
-                    onTap: () {
-                      // TODO: Navigate to detail view
-                    },
-                  );
-                },
+                itemCount: 4, // Tampilkan 4 card kosong
+                itemBuilder: (context, _) => const EducationCard(),
               );
             }),
           ),
@@ -67,6 +84,8 @@ class EducationView extends GetView<EducationController> {
     );
   }
 }
+
+// ── App Bar ──────────────────────────────────────────────────────────────────
 
 class _EducationAppBar extends StatelessWidget {
   @override
@@ -97,7 +116,7 @@ class _EducationAppBar extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Education',
+              'Edukasi',
               style: AppTextStyles.headingLarge.copyWith(
                 color: Colors.white,
                 fontSize: 22,
@@ -105,7 +124,9 @@ class _EducationAppBar extends StatelessWidget {
               ),
             ),
           ),
-          Stack(
+          GestureDetector(
+            onTap: () => Get.toNamed(AppRoutes.notification),
+            child: Stack(
             clipBehavior: Clip.none,
             children: [
               Container(
@@ -139,8 +160,10 @@ class _EducationAppBar extends StatelessWidget {
               ),
             ],
           ),
+          ),
         ],
       ),
     );
   }
 }
+

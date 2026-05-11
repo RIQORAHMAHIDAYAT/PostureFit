@@ -40,6 +40,14 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    packaging {
+        jniLibs {
+            // Force native libs to be extracted from APK at install time.
+            // Required for libflutter.so to be found by the Android ClassLoader.
+            useLegacyPackaging = true
+        }
+    }
 }
 
 flutter {

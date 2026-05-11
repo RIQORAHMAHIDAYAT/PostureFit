@@ -1,63 +1,62 @@
 import 'package:get/get.dart';
 
+/// Model data edukasi yang akan diisi dari API server via IP address.
+/// Field [imageUrl] adalah URL gambar dari server (e.g. http://192.168.x.x:PORT/image.jpg).
 class EducationItem {
+  final String id;
   final String title;
-  final String subtitle;
-  final String category;
-  final String duration;
+  final String description;
+  final String imageUrl; // URL gambar dari server
 
   const EducationItem({
+    required this.id,
     required this.title,
-    required this.subtitle,
-    required this.category,
-    required this.duration,
+    required this.description,
+    required this.imageUrl,
   });
+
+  /// Factory dari JSON response server
+  factory EducationItem.fromJson(Map<String, dynamic> json) {
+    return EducationItem(
+      id: json['id']?.toString() ?? '',
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      imageUrl: json['image_url'] ?? '',
+    );
+  }
 }
 
 class EducationController extends GetxController {
   final RxList<EducationItem> educationList = <EducationItem>[].obs;
   final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
+
+  // TODO: Ganti dengan IP server yang sebenarnya
+  // Contoh: 'http://192.168.1.100:5000/api/education'
+  static const String _apiBaseUrl = '';
 
   @override
   void onInit() {
     super.onInit();
-    _loadDummyData();
+    // Data akan kosong sampai API dikonfigurasi
+    // fetchEducation(); // Uncomment setelah IP server dikonfigurasi
   }
 
-  void _loadDummyData() {
+  /// Dipanggil setelah IP server dikonfigurasi.
+  /// Fetch daftar edukasi dari server.
+  Future<void> fetchEducation() async {
+    if (_apiBaseUrl.isEmpty) return;
     isLoading.value = true;
-    educationList.assignAll([
-      const EducationItem(
-        title: 'Correct Sitting Posture',
-        subtitle: 'Learn how to sit properly to avoid long-term spine issues.',
-        category: 'Posture Guide',
-        duration: '5 min read',
-      ),
-      const EducationItem(
-        title: 'Avoid Back Pain',
-        subtitle: 'Simple daily habits that protect your back from chronic pain.',
-        category: 'Tips & Tricks',
-        duration: '4 min read',
-      ),
-      const EducationItem(
-        title: 'Stretching Routine',
-        subtitle: 'A quick 10-minute morning stretch to energize your body.',
-        category: 'Exercise',
-        duration: '3 min read',
-      ),
-      const EducationItem(
-        title: 'Ergonomic Workspace Setup',
-        subtitle: 'Set up your desk and chair for maximum comfort and posture.',
-        category: 'Ergonomics',
-        duration: '6 min read',
-      ),
-      const EducationItem(
-        title: 'Neck & Shoulder Relief',
-        subtitle: 'Targeted exercises to relieve tension in neck and shoulders.',
-        category: 'Exercise',
-        duration: '4 min read',
-      ),
-    ]);
-    isLoading.value = false;
+    errorMessage.value = '';
+    try {
+      // TODO: Implementasi HTTP request ke server
+      // final response = await http.get(Uri.parse('$_apiBaseUrl/education'));
+      // final List data = jsonDecode(response.body);
+      // educationList.assignAll(data.map((e) => EducationItem.fromJson(e)));
+    } catch (e) {
+      errorMessage.value = 'Gagal memuat data: $e';
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

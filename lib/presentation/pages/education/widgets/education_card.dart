@@ -3,20 +3,17 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../education/education_controller.dart';
 
+/// Card edukasi: menampilkan gambar dari server + judul + deskripsi.
+/// Jika [item] null → tampilkan card kosong (placeholder layout).
 class EducationCard extends StatefulWidget {
-  final String title;
-  final String subtitle;
-  final String category;
-  final String duration;
+  final EducationItem? item;
   final VoidCallback? onTap;
 
   const EducationCard({
     super.key,
-    required this.title,
-    required this.subtitle,
-    this.category = '',
-    this.duration = '',
+    this.item,
     this.onTap,
   });
 
@@ -47,52 +44,19 @@ class _EducationCardState extends State<EducationCard>
     super.dispose();
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'posture guide':
-        return AppColors.primary;
-      case 'tips & tricks':
-        return AppColors.success;
-      case 'exercise':
-        return AppColors.accent;
-      case 'ergonomics':
-        return AppColors.warning;
-      default:
-        return AppColors.secondary;
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'posture guide':
-        return Icons.accessibility_new_rounded;
-      case 'tips & tricks':
-        return Icons.lightbulb_outline_rounded;
-      case 'exercise':
-        return Icons.fitness_center_rounded;
-      case 'ergonomics':
-        return Icons.chair_rounded;
-      default:
-        return Icons.menu_book_rounded;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final categoryColor = _getCategoryColor(widget.category);
-    final categoryIcon = _getCategoryIcon(widget.category);
+    final isEmpty = widget.item == null;
 
     return GestureDetector(
-      onTapDown: (_) {
-        _animController.forward();
-      },
-      onTapUp: (_) {
-        _animController.reverse();
-        widget.onTap?.call();
-      },
-      onTapCancel: () {
-        _animController.reverse();
-      },
+      onTapDown: isEmpty ? null : (_) => _animController.forward(),
+      onTapUp: isEmpty
+          ? null
+          : (_) {
+              _animController.reverse();
+              widget.onTap?.call();
+            },
+      onTapCancel: isEmpty ? null : () => _animController.reverse(),
       child: ScaleTransition(
         scale: _scaleAnim,
         child: Container(
@@ -104,135 +68,162 @@ class _EducationCardState extends State<EducationCard>
               BoxShadow(
                 color: AppColors.primary.withValues(alpha: 0.08),
                 blurRadius: 16,
-                spreadRadius: 0,
                 offset: const Offset(0, 4),
               ),
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
-                spreadRadius: 0,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingMD),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Thumbnail placeholder
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        categoryColor.withValues(alpha: 0.15),
-                        categoryColor.withValues(alpha: 0.05),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: categoryColor.withValues(alpha: 0.2),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      categoryIcon,
-                      color: categoryColor,
-                      size: AppDimensions.iconXL,
-                    ),
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Area Gambar ──────────────────────────────────────────
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppDimensions.radiusLG),
                 ),
-                const SizedBox(width: AppDimensions.paddingMD),
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Category badge
-                      if (widget.category.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(
-                              bottom: AppDimensions.paddingXS),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.paddingSM,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: categoryColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(
-                                AppDimensions.radiusCircle),
-                          ),
-                          child: Text(
-                            widget.category,
-                            style: AppTextStyles.captionStyle.copyWith(
-                              color: categoryColor,
-                              fontWeight: FontWeight.w600,
+                child: _buildImage(context),
+              ),
+
+              // ── Area Teks ────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(AppDimensions.paddingMD),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Judul
+                    _buildPlaceholderBox(
+                      context,
+                      child: isEmpty
+                          ? null
+                          : Text(
+                              widget.item!.title,
+                              style: AppTextStyles.headingSmall.copyWith(
+                                fontWeight: FontWeight.w700,
+                                height: 1.3,
+                                color: AppTheme.textPrimary(context),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ),
-                      // Title
-                      Text(
-                        widget.title,
-                        style: AppTextStyles.headingSmall.copyWith(
-                          fontWeight: FontWeight.w700,
-                          height: 1.3,
-                          color: AppTheme.textPrimary(context),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      // Subtitle
-                      if (widget.subtitle.isNotEmpty)
-                        Text(
-                          widget.subtitle,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppTheme.textSecondary(context),
-                            height: 1.4,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      const SizedBox(height: 6),
-                      // Duration row
-                      if (widget.duration.isNotEmpty)
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.schedule_rounded,
-                              size: 12,
-                              color: AppTheme.textSecondary(context),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.duration,
-                              style: AppTextStyles.captionStyle.copyWith(
+                      height: 18,
+                      width: double.infinity,
+                    ),
+                    const SizedBox(height: 8),
+                    // Deskripsi baris 1
+                    _buildPlaceholderBox(
+                      context,
+                      child: isEmpty
+                          ? null
+                          : Text(
+                              widget.item!.description,
+                              style: AppTextStyles.bodySmall.copyWith(
                                 color: AppTheme.textSecondary(context),
+                                height: 1.5,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                      height: 13,
+                      width: double.infinity,
+                    ),
+                    if (isEmpty) ...[
+                      const SizedBox(height: 6),
+                      _buildPlaceholderBox(
+                        context,
+                        child: null,
+                        height: 13,
+                        width: 200,
+                      ),
+                    ],
+                    const SizedBox(height: AppDimensions.paddingSM),
+                    // Baca selengkapnya
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: isEmpty
+                          ? _buildPlaceholderBox(
+                              context,
+                              child: null,
+                              height: 12,
+                              width: 120,
+                            )
+                          : Text(
+                              'Baca selengkapnya →',
+                              style: AppTextStyles.captionStyle.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // Arrow
-                Padding(
-                  padding: const EdgeInsets.only(left: AppDimensions.paddingXS),
-                  child: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 14,
-                    color: AppTheme.textSecondary(context),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImage(BuildContext context) {
+    // Card kosong → area gambar abu-abu polos
+    if (widget.item == null || widget.item!.imageUrl.isEmpty) {
+      return Container(
+        width: double.infinity,
+        height: 180,
+        color: AppTheme.inputBg(context),
+      );
+    }
+
+    // Ada URL → load dari server
+    return Image.network(
+      widget.item!.imageUrl,
+      width: double.infinity,
+      height: 180,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          width: double.infinity,
+          height: 180,
+          color: AppTheme.inputBg(context),
+          child: const Center(
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, _, __) => Container(
+        width: double.infinity,
+        height: 180,
+        color: AppTheme.inputBg(context),
+      ),
+    );
+  }
+
+  /// Kotak placeholder abu-abu untuk teks kosong, atau tampilkan [child] jika ada data.
+  Widget _buildPlaceholderBox(
+    BuildContext context, {
+    required Widget? child,
+    required double height,
+    required double width,
+  }) {
+    if (child != null) return child;
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: AppTheme.borderColor(context).withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }
