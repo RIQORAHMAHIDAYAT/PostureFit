@@ -12,8 +12,8 @@ class AppTheme {
   static const Color _darkCardAlt     = Color(0xFF162035); // kartu alt
   static const Color _darkBorder      = Color(0xFF243B55); // garis
   static const Color _darkInput       = Color(0xFF1A2E4A); // input
-  static const Color _darkTextPrimary = Color(0xFFE8F3FC); // teks utama
-  static const Color _darkTextSecond  = Color(0xFF8BB8D8); // teks sekunder
+  static const Color _darkTextPrimary = Color(0xFFF8FAFC); // teks utama
+  static const Color _darkTextSecond  = Color(0xFFCBD5E1); // teks sekunder
 
   // ── Light Theme ────────────────────────────────────────────────────────────
   static ThemeData get lightTheme {

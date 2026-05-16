@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/scan_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ScanView extends GetView<ScanController> {
   const ScanView({super.key});
@@ -38,20 +39,10 @@ class _ScanAppBar extends GetView<ScanController> {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(8, MediaQuery.of(context).padding.top, 16, 16),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Color(0xFF0D2137),
-            Color(0xFF1A3A5C),
-            Color(0xFF2E6099),
-            Color(0xFF5A9ED4),
-            Color(0xFFAAD4F5),
-          ],
-          stops: [0.0, 0.2, 0.5, 0.75, 1.0],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryAppBarGradient,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: AppColors.primaryAppBarShadow,
       ),
       child: Row(
         children: [
@@ -77,7 +68,7 @@ class _ViewfinderCard extends GetView<ScanController> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Obx(() {
       final hasCapture = controller.hasCapture.value;
-      final imageFile = controller.capturedImage.value;
+      final imageBytes = controller.capturedBytes.value;
 
       return Container(
         width: double.infinity,
@@ -88,11 +79,11 @@ class _ViewfinderCard extends GetView<ScanController> {
         clipBehavior: Clip.hardEdge,
         child: Stack(
           children: [
-            // Gambar yang sudah diambil / kamera preview
-            if (hasCapture && imageFile != null)
+            // Gambar yang sudah diambil — pakai Image.memory agar support web & mobile
+            if (hasCapture && imageBytes != null)
               Positioned.fill(
-                child: Image.file(
-                  imageFile,
+                child: Image.memory(
+                  imageBytes,
                   fit: BoxFit.cover,
                 ),
               )

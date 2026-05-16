@@ -1,12 +1,14 @@
-import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../controllers/scan_controller.dart';
 
 /// Halaman preview gambar hasil scan postur.
-/// Menerima argument 'imagePath' (String) via Get.toNamed.
+/// Mengambil bytes gambar dari ScanController (cross-platform: web & mobile).
 class ImagePreviewView extends StatefulWidget {
   const ImagePreviewView({super.key});
 
@@ -15,17 +17,20 @@ class ImagePreviewView extends StatefulWidget {
 }
 
 class _ImagePreviewViewState extends State<ImagePreviewView> {
-  late final String? _imagePath;
+  Uint8List? _imageBytes;
   final TransformationController _transformCtrl = TransformationController();
 
   @override
   void initState() {
     super.initState();
+    // Ambil bytes dari ScanController (sudah tersimpan saat pick/capture)
+    if (Get.isRegistered<ScanController>()) {
+      _imageBytes = Get.find<ScanController>().capturedBytes.value;
+    }
+    // Fallback: cek apakah dikirim lewat arguments (untuk mobile path)
     final args = Get.arguments;
-    if (args is Map && args['imagePath'] is String) {
-      _imagePath = args['imagePath'] as String;
-    } else {
-      _imagePath = null;
+    if (_imageBytes == null && args is Map && args['imageBytes'] is Uint8List) {
+      _imageBytes = args['imageBytes'] as Uint8List;
     }
   }
 
@@ -41,7 +46,7 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
 
   @override
   Widget build(BuildContext context) {
-    final imageFile = _imagePath != null ? File(_imagePath!) : null;
+    final hasImage = _imageBytes != null && _imageBytes!.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -49,12 +54,11 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
         children: [
           _buildAppBar(context),
           Expanded(
-            child: imageFile != null && imageFile.existsSync()
-                ? _buildImageViewer(imageFile)
+            child: hasImage
+                ? _buildImageViewer(_imageBytes!)
                 : _buildNoImageState(),
           ),
-          if (imageFile != null && imageFile.existsSync())
-            _buildBottomBar(context),
+          if (hasImage) _buildBottomBar(context),
         ],
       ),
     );
@@ -68,19 +72,10 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
         16,
         12,
       ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Color(0xFF0D2137),
-            Color(0xFF1A3A5C),
-            Color(0xFF2E6099),
-            Color(0xFF5A9ED4),
-            Color(0xFFAAD4F5),
-          ],
-          stops: [0.0, 0.2, 0.5, 0.75, 1.0],
-        ),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryAppBarGradient,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: AppColors.primaryAppBarShadow,
       ),
       child: Row(
         children: [
@@ -135,17 +130,17 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
     );
   }
 
-  Widget _buildImageViewer(File imageFile) {
+  Widget _buildImageViewer(Uint8List bytes) {
     return Stack(
       children: [
-        // Gambar interaktif (bisa di-pinch zoom & pan)
+        // Gambar interaktif (bisa di-pinch zoom & pan) — pakai Image.memory (cross-platform)
         InteractiveViewer(
           transformationController: _transformCtrl,
           minScale: 0.5,
           maxScale: 5.0,
           child: Center(
-            child: Image.file(
-              imageFile,
+            child: Image.memory(
+              bytes,
               fit: BoxFit.contain,
               width: double.infinity,
               height: double.infinity,
@@ -164,14 +159,16 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
                 color: Colors.black.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.pinch_outlined, color: Colors.white70, size: 14),
-                  SizedBox(width: 6),
+                  const Icon(Icons.pinch_outlined, color: Colors.white70, size: 14),
+                  const SizedBox(width: 6),
                   Text(
-                    'Cubit untuk zoom • Geser untuk pindah',
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                    kIsWeb
+                        ? 'Scroll untuk zoom • Geser untuk pindah'
+                        : 'Cubit untuk zoom • Geser untuk pindah',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
               ),

@@ -19,20 +19,10 @@ class ProfileHeader extends GetView<ProfileController> {
         left: AppDimensions.paddingLG,
         right: AppDimensions.paddingLG,
       ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Color(0xFF0D2137),
-            Color(0xFF1A3A5C),
-            Color(0xFF2E6099),
-            Color(0xFF5A9ED4),
-            Color(0xFFAAD4F5),
-          ],
-          stops: [0.0, 0.2, 0.5, 0.75, 1.0],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryAppBarGradient,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: AppColors.primaryAppBarShadow,
       ),
       child: Column(
         children: [

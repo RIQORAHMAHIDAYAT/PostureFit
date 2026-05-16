@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../routes/app_routes.dart';
@@ -6,7 +7,12 @@ import '../../routes/app_routes.dart';
 class ScanController extends GetxController {
   final RxBool isCapturing = false.obs;
   final RxBool hasCapture = false.obs;
-  final Rx<File?> capturedImage = Rx<File?>(null);
+
+  /// Menyimpan bytes gambar agar bisa dipakai di web & mobile
+  final Rx<Uint8List?> capturedBytes = Rx<Uint8List?>(null);
+
+  /// Path file (hanya tersedia di mobile, null di web)
+  final RxString capturedPath = ''.obs;
 
   final _picker = ImagePicker();
 
@@ -20,7 +26,8 @@ class ScanController extends GetxController {
         preferredCameraDevice: CameraDevice.rear,
       );
       if (picked != null) {
-        capturedImage.value = File(picked.path);
+        capturedBytes.value = await picked.readAsBytes();
+        capturedPath.value = picked.path;
         hasCapture.value = true;
         await Future.delayed(const Duration(milliseconds: 300));
         Get.toNamed(AppRoutes.result);
@@ -28,7 +35,9 @@ class ScanController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Kamera tidak tersedia',
-        'Coba gunakan galeri atau periksa izin kamera.',
+        kIsWeb
+            ? 'Gunakan galeri untuk memilih gambar di browser.'
+            : 'Coba gunakan galeri atau periksa izin kamera.',
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 3),
       );
@@ -46,7 +55,8 @@ class ScanController extends GetxController {
         imageQuality: 90,
       );
       if (picked != null) {
-        capturedImage.value = File(picked.path);
+        capturedBytes.value = await picked.readAsBytes();
+        capturedPath.value = picked.path;
         hasCapture.value = true;
         await Future.delayed(const Duration(milliseconds: 300));
         Get.toNamed(AppRoutes.result);
@@ -64,7 +74,8 @@ class ScanController extends GetxController {
   }
 
   void onRetake() {
-    capturedImage.value = null;
+    capturedBytes.value = null;
+    capturedPath.value = '';
     hasCapture.value = false;
   }
 

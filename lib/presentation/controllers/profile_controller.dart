@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/theme_controller.dart';
+import '../../routes/app_routes.dart';
 
 class ProfileController extends GetxController {
   // ── User info ─────────────────────────────────────────────────────────────
@@ -57,7 +58,11 @@ class ProfileController extends GetxController {
   void toggleSleepMode(bool value) => isSleepMode.value = value;
 
   void onEditProfile() {
-    // TODO: Navigate to edit-profile page.
+    Get.toNamed(AppRoutes.editProfile);
+  }
+
+  void onActivityLog() {
+    Get.toNamed(AppRoutes.activityLog);
   }
 
   void onPrivacyPolicy() {

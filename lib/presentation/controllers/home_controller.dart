@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/entities/activity_entity.dart';
+import '../../../routes/app_routes.dart';
+import 'main_controller.dart';
 
 class HomeController extends GetxController {
   final RxInt selectedNavIndex = 0.obs;
@@ -32,9 +34,23 @@ class HomeController extends GetxController {
     selectedNavIndex.value = index;
   }
 
-  void onWorkoutPlanTap() {}
-  void onBmiAnalysisTap() => Get.toNamed('/result');
-  void onLogAktivitasTap() {}
-  void onProgressTrackerTap() {}
-  void onLihatRekomendasiTap() {}
+  void onWorkoutPlanTap() {
+    try {
+      Get.find<MainController>().selectedIndex.value = 2;
+    } catch (e) {
+      Get.toNamed(AppRoutes.workoutPlan);
+    }
+  }
+
+  void onBmiAnalysisTap() => Get.toNamed(AppRoutes.dssAnalysis);
+  void onLogAktivitasTap() => Get.toNamed(AppRoutes.workoutLog);
+  void onProgressTrackerTap() => Get.toNamed(AppRoutes.progressReport);
+
+  void onLihatRekomendasiTap() {
+    try {
+      Get.find<MainController>().selectedIndex.value = 2;
+    } catch (e) {
+      Get.toNamed(AppRoutes.workoutPlan);
+    }
+  }
 }

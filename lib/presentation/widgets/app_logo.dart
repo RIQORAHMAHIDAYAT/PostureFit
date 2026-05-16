@@ -20,21 +20,21 @@ class AppLogo extends StatelessWidget {
         Container(
           width: iconSize,
           height: iconSize,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(iconSize * 0.28),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.35),
+                color: AppColors.primary.withValues(alpha: 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: Icon(
-            Icons.directions_run_rounded,
-            color: AppColors.textWhite,
-            size: iconSize * 0.55,
+          child: Image.asset(
+            'assets/icons/Logo_1.png',
+            fit: BoxFit.cover,
           ),
         ),
         if (showTitle) ...[

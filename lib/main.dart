@@ -34,8 +34,9 @@ class PostureFitApp extends StatelessWidget {
           themeMode: themeCtrl.isDarkMode.value
               ? ThemeMode.dark
               : ThemeMode.light,
-          initialRoute: AppRoutes.login,
+          initialRoute: AppRoutes.splash,
           getPages: AppPages.pages,
+          defaultTransition: Transition.cupertino,
         ));
   }
 }

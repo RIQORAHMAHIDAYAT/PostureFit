@@ -262,6 +262,14 @@ class _SettingsBlock extends GetView<ProfileController> {
                   onSwitchChanged: controller.toggleSleepMode,
                 ),
                 ProfileMenuItem(
+                  icon: Icons.history_rounded,
+                  iconColor: AppColors.primary,
+                  iconBg: AppColors.primary.withValues(alpha: 0.12),
+                  title: 'Aktivitas Akun',
+                  hasArrow: true,
+                  onTap: controller.onActivityLog,
+                ),
+                ProfileMenuItem(
                   icon: Icons.shield_outlined,
                   iconColor: AppColors.success,
                   iconBg: AppColors.success.withValues(alpha: 0.12),

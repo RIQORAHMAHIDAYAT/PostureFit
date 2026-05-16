@@ -9,15 +9,15 @@ class AppColors {
   static const Color secondary = Color(0xFF5BB8F5);
   static const Color accent = Color(0xFF3DD6C8);
 
-  static const Color backgroundStart = Color(0xFFDEECFA);
-  static const Color backgroundEnd = Color(0xFFF0F7FF);
+  static const Color backgroundStart = Color(0xFFF4F8FC); // Off-white blue yang sangat soft
+  static const Color backgroundEnd = Color(0xFFFFFFFF);
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color cardBlue = Color(0xFFE8F3FC);
   static const Color cardBlueDark = Color(0xFF3A7FC1);
 
-  static const Color textPrimary = Color(0xFF1A2E4A);
-  static const Color textSecondary = Color(0xFF6B8BAE);
-  static const Color textLight = Color(0xFFB0C8E0);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF334155);
+  static const Color textLight = Color(0xFF64748B);
   static const Color textWhite = Color(0xFFFFFFFF);
 
   static const Color success = Color(0xFF4CAF82);
@@ -32,6 +32,24 @@ class AppColors {
   static const Color navBackground = Color(0xFF3A7FC1);
   static const Color navActive = Color(0xFFFFFFFF);
   static const Color navInactive = Color(0xFFADD0EC);
+
+  static const LinearGradient primaryAppBarGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF183B6B),
+      Color(0xFF6FA9E7),
+    ],
+  );
+
+  static final List<BoxShadow> primaryAppBarShadow = [
+    BoxShadow(
+      color: const Color(0xFF183B6B).withValues(alpha: 0.15),
+      blurRadius: 24,
+      spreadRadius: 0,
+      offset: const Offset(0, 8),
+    ),
+  ];
 
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
