@@ -1,0 +1,372 @@
+{% extends "sqladmin/layout.html" %}
+
+{% block content %}
+{# ── External CSS ─────────────────────────────────────────────────── #}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/posturfit-admin.css">
+
+{# ══════════════════════════════════════════════════════════════════
+   DASHBOARD MARKUP
+   ══════════════════════════════════════════════════════════════════ #}
+<div class="pf" id="pf-root">
+
+  <!-- ── Page Header ──────────────────────────────────────────── -->
+  <div class="pf-head">
+    <div>
+      <div class="pf-brand">Posture<em>Fit</em> Admin</div>
+      <div class="pf-desc">Ringkasan data platform · pembaruan realtime dari database</div>
+    </div>
+    <div class="pf-live" id="pf-status-badge">
+      <div class="pf-live-dot-wrap">
+        <span class="pf-live-ring"></span>
+        <span class="pf-live-dot"></span>
+      </div>
+      Live
+    </div>
+  </div>
+
+  <!-- ── Row 1 : KPI Cards ─────────────────────────────────────── -->
+  <div class="pf-sec-label">Statistik Utama</div>
+  <div class="pf-row4">
+
+    <div class="pf-kpi a1">
+      <div class="pf-kpi-top">
+        <div>
+          <div class="pf-kpi-lbl">Total Pengguna</div>
+          <div class="pf-kpi-val" id="v-users">—</div>
+          <div class="pf-kpi-sub">Akun terdaftar</div>
+        </div>
+        <div class="pf-kpi-icon">👥</div>
+      </div>
+    </div>
+
+    <div class="pf-kpi a2">
+      <div class="pf-kpi-top">
+        <div>
+          <div class="pf-kpi-lbl">Rata-rata BMI</div>
+          <div class="pf-kpi-val" id="v-bmi">—</div>
+          <div class="pf-kpi-sub">Seluruh pengguna</div>
+        </div>
+        <div class="pf-kpi-icon">⚖️</div>
+      </div>
+    </div>
+
+    <div class="pf-kpi a3">
+      <div class="pf-kpi-top">
+        <div>
+          <div class="pf-kpi-lbl">Total Scan CV</div>
+          <div class="pf-kpi-val" id="v-scans">—</div>
+          <div class="pf-kpi-sub">Analisis postur</div>
+        </div>
+        <div class="pf-kpi-icon">📸</div>
+      </div>
+    </div>
+
+    <div class="pf-kpi a4">
+      <div class="pf-kpi-top">
+        <div>
+          <div class="pf-kpi-lbl">Rencana Latihan</div>
+          <div class="pf-kpi-val" id="v-plans">—</div>
+          <div class="pf-kpi-sub">Program dibuat</div>
+        </div>
+        <div class="pf-kpi-icon">📋</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Row 2 : Dark Mini Cards ───────────────────────────────── -->
+  <div class="pf-sec-label">Aktivitas Platform</div>
+  <div class="pf-row3">
+
+    <div class="pf-dark d1">
+      <div class="pf-dark-ico">🏃</div>
+      <div>
+        <div class="pf-dark-lbl">Riwayat Workout</div>
+        <div class="pf-dark-val" id="v-logs">—</div>
+      </div>
+    </div>
+
+    <div class="pf-dark d2">
+      <div class="pf-dark-ico">📚</div>
+      <div>
+        <div class="pf-dark-lbl">Artikel Edukasi</div>
+        <div class="pf-dark-val" id="v-articles">—</div>
+      </div>
+    </div>
+
+    <div class="pf-dark d3">
+      <div class="pf-dark-ico">🔔</div>
+      <div>
+        <div class="pf-dark-lbl">Notifikasi Aktif</div>
+        <div class="pf-dark-val" id="v-notifs">—</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Row 3 : Charts ────────────────────────────────────────── -->
+  <div class="pf-sec-label">Visualisasi Data</div>
+  <div class="pf-row2">
+
+    <!-- Donut chart -->
+    <div class="pf-card">
+      <div class="pf-card-hd">
+        <div class="pf-card-title">Distribusi Kategori Tubuh</div>
+        <span class="pf-card-tag">Donut</span>
+      </div>
+      <div class="pf-wrap">
+        <canvas id="catChart" aria-label="Grafik distribusi kategori tubuh" role="img"></canvas>
+        <div class="pf-empty" id="catEmpty" style="display:none;" aria-live="polite">
+          <div class="pf-empty-ico">📊</div>
+          <p>Belum ada data scan</p>
+        </div>
+      </div>
+      <div class="pf-legend" id="catLegend" aria-label="Legenda grafik kategori tubuh"></div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="pf-card">
+      <div class="pf-card-hd">
+        <div class="pf-card-title">Pendaftar 7 Hari Terakhir</div>
+        <span class="pf-card-tag">Bar</span>
+      </div>
+      <div class="pf-wrap">
+        <canvas id="regChart" aria-label="Grafik pendaftar 7 hari terakhir" role="img"></canvas>
+        <div class="pf-empty" id="regEmpty" style="display:none;" aria-live="polite">
+          <div class="pf-empty-ico">📈</div>
+          <p>Belum ada pendaftar baru</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{# ── Error toast (hidden by default) ─────────────────────────────── #}
+<div class="pf-toast" id="pf-toast" style="display:none;" role="alert">
+  ⚠️ Gagal memuat data statistik.
+</div>
+
+{# ── Scripts ──────────────────────────────────────────────────────── #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── Palette ────────────────────────────────────────────────── */
+  var COLORS = ['#10b981','#6366f1','#f97316','#eab308','#ec4899','#06b6d4','#8b5cf6'];
+
+  /* ── Chart.js defaults ──────────────────────────────────────── */
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color       = '#94a3b8';
+
+  /* ── Instances (kept for potential re-render/destroy) ───────── */
+  var charts = {};
+
+  /* ── Helpers ────────────────────────────────────────────────── */
+
+  /** Easing: cubic ease-out */
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  /**
+   * Animated counter.
+   * @param {HTMLElement} el
+   * @param {number}      target
+   * @param {boolean}     [isFloat=false]
+   */
+  function animateCount(el, target, isFloat) {
+    if (!el) return;
+    var start = performance.now();
+    var dur   = 950;
+    function tick(now) {
+      var progress = Math.min((now - start) / dur, 1);
+      var value    = target * easeOut(progress);
+      el.textContent = isFloat
+        ? value.toFixed(1)
+        : Math.round(value).toLocaleString('id-ID');
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /** Show / hide the error toast */
+  function showToast(msg) {
+    var toast = document.getElementById('pf-toast');
+    if (!toast) return;
+    toast.style.display = 'flex';
+    if (msg) toast.textContent = '⚠️ ' + msg;
+    setTimeout(function () {
+      toast.style.opacity = '0';
+      setTimeout(function () { toast.style.display = 'none'; toast.style.opacity = ''; }, 350);
+    }, 4500);
+  }
+
+  /** Build / update the donut chart */
+  function buildDonut(labels, values) {
+    var catEmpty = document.getElementById('catEmpty');
+    var catLegend = document.getElementById('catLegend');
+    var canvas  = document.getElementById('catChart');
+
+    if (!values.length) {
+      canvas.style.display = 'none';
+      catEmpty.style.display = 'flex';
+      return;
+    }
+
+    canvas.style.display = '';
+    catEmpty.style.display = 'none';
+
+    /* Legend */
+    catLegend.innerHTML = '';
+    labels.forEach(function (label, i) {
+      var item = document.createElement('span');
+      item.className = 'pf-leg';
+      item.innerHTML =
+        '<span class="pf-leg-dot" style="background:' + COLORS[i % COLORS.length] + '"></span>'
+        + label;
+      catLegend.appendChild(item);
+    });
+
+    /* Destroy previous instance if exists */
+    if (charts.donut) { charts.donut.destroy(); }
+
+    charts.donut = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data:            values,
+          backgroundColor: COLORS.slice(0, values.length),
+          borderWidth:     0,
+          hoverOffset:     12,
+        }],
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        cutout:              '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            cornerRadius:    12,
+            padding:         12,
+            callbacks: {
+              label: function (ctx) {
+                return '  ' + ctx.label + ': ' + ctx.parsed + ' orang';
+              },
+            },
+          },
+        },
+        animation: { animateRotate: true, duration: 1100 },
+      },
+    });
+  }
+
+  /** Build / update the bar chart */
+  function buildBar(labels, values) {
+    var regEmpty = document.getElementById('regEmpty');
+    var canvas   = document.getElementById('regChart');
+
+    if (!values.length) {
+      canvas.style.display = 'none';
+      regEmpty.style.display = 'flex';
+      return;
+    }
+
+    canvas.style.display = '';
+    regEmpty.style.display = 'none';
+
+    var maxVal = Math.max.apply(null, values);
+
+    if (charts.bar) { charts.bar.destroy(); }
+
+    charts.bar = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label:           'Pendaftar',
+          data:            values,
+          backgroundColor: values.map(function (v) {
+            return v === maxVal ? 'rgba(16,185,129,.9)' : 'rgba(16,185,129,.15)';
+          }),
+          borderRadius:    10,
+          borderSkipped:   false,
+          barPercentage:   .55,
+        }],
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            cornerRadius:    12,
+            padding:         12,
+            callbacks: {
+              label: function (ctx) { return '  ' + ctx.parsed.y + ' pendaftar'; },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid:   { display: false },
+            border: { display: false },
+            ticks:  { font: { size: 11, weight: '600' } },
+          },
+          y: {
+            beginAtZero: true,
+            grid:   { color: 'rgba(15,23,42,.06)' },
+            border: { display: false },
+            ticks: {
+              stepSize: 1,
+              font: { size: 11 },
+              callback: function (v) { return Number.isInteger(v) ? v : ''; },
+            },
+          },
+        },
+        animation: { duration: 950 },
+      },
+    });
+  }
+
+  /** Main render function: populate KPIs + charts */
+  function render(data) {
+    /* KPI counters */
+    animateCount(document.getElementById('v-users'),    data.total_users        || 0, false);
+    animateCount(document.getElementById('v-bmi'),      data.avg_bmi            || 0, true);
+    animateCount(document.getElementById('v-scans'),    data.total_scans        || 0, false);
+    animateCount(document.getElementById('v-plans'),    data.total_plans        || 0, false);
+    animateCount(document.getElementById('v-logs'),     data.total_workout_logs || 0, false);
+    animateCount(document.getElementById('v-articles'), data.total_articles     || 0, false);
+    animateCount(document.getElementById('v-notifs'),   data.total_notifications|| 0, false);
+
+    /* Charts */
+    var catLabels = Object.keys(data.kategori_tubuh  || {});
+    var catValues = Object.values(data.kategori_tubuh || {});
+    buildDonut(catLabels, catValues);
+
+    var regLabels = Object.keys(data.registrations  || {});
+    var regValues = Object.values(data.registrations || {});
+    buildBar(regLabels, regValues);
+  }
+
+  /* ── Fetch stats from the backend API ───────────────────────── */
+  fetch('/admin-api/stats')
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(render)
+    .catch(function (err) {
+      console.error('[PostureFit Admin] Failed to load stats:', err);
+      showToast('Gagal memuat data statistik. Coba refresh halaman.');
+    });
+
+})();
+</script>
+
+{% endblock %}

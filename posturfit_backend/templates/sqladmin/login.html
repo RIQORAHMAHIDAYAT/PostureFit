@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PostureFit Admin — Login</title>
+  <meta name="description" content="Masuk ke panel admin PostureFit untuk mengelola data pengguna, latihan, dan analisis postur." />
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="/static/css/posturfit-login.css" />
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-canvas" aria-hidden="true">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- Page Layout -->
+  <div class="login-page">
+
+    <!-- Left Side Panel -->
+    <div class="login-side login-side-left" aria-hidden="true">
+      <div class="side-badge">
+        <span class="side-badge-dot"></span>
+        <span>Sistem Aktif</span>
+      </div>
+
+      <h2 class="side-headline">
+        Kelola<br>
+        <em>PostureFit</em><br>
+        Dashboard
+      </h2>
+
+      <p class="side-desc">
+        Panel administrasi terpusat untuk memantau pengguna,
+        analisis postur, progress latihan, dan seluruh data aplikasi.
+      </p>
+
+      <div class="side-stats">
+        <div class="stat-item">
+          <div class="stat-icon">🧑‍💼</div>
+          <span class="stat-text">Manajemen pengguna & akses</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">📊</div>
+          <span class="stat-text">Analisis postur & assessments</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🏋️</div>
+          <span class="stat-text">Data workout & progress harian</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🔔</div>
+          <span class="stat-text">Kelola notifikasi & konten edukasi</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center — Login Card -->
+    <div class="login-center">
+      <div class="login-card">
+
+        <!-- Brand -->
+        <div class="login-brand">
+          <div class="login-logo-wrap">
+            <img
+              src="/static/Logo_1.png"
+              alt="PostureFit Logo"
+              class="login-logo-img"
+            />
+            <div class="login-logo-ring" aria-hidden="true"></div>
+          </div>
+          <div class="login-brand-text">
+            <h1>Posture<em>Fit</em></h1>
+            <p>Admin Dashboard</p>
+          </div>
+        </div>
+
+        <!-- Heading -->
+        <div class="login-heading">
+          <h2>Selamat Datang</h2>
+          <p>Masukkan kredensial admin Anda untuk mengakses panel kontrol.</p>
+        </div>
+
+        <!-- Error Alert -->
+        {% if error %}
+        <div class="login-error" id="login-error" role="alert" aria-live="assertive">
+          <span class="login-error-icon" aria-hidden="true">⚠️</span>
+          <span class="login-error-text">{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Login Form -->
+        <form class="login-form" id="login-form" method="POST" action="/admin/login" novalidate>
+
+          <!-- Username -->
+          <div class="form-group">
+            <label class="form-label" for="username">Username</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input
+                class="form-input"
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Masukkan username"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+                autofocus
+              />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input
+                class="form-input"
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                id="toggle-pw"
+                aria-label="Tampilkan/sembunyikan password"
+                title="Tampilkan password"
+              >
+                <svg id="icon-eye-show" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="icon-eye-hide" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button class="btn-login" type="submit" id="btn-submit">
+            <span class="btn-content">
+              <span class="btn-spinner" id="btn-spinner" aria-hidden="true"></span>
+              <span id="btn-text">Masuk ke Dashboard</span>
+            </span>
+          </button>
+
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+          <div class="footer-status">
+            <span class="status-dot" aria-hidden="true"></span>
+            Sistem online
+          </div>
+          <span class="footer-version">v2.0.0</span>
+        </div>
+
+      </div><!-- /.login-card -->
+    </div><!-- /.login-center -->
+
+    <!-- Right Side (decorative, hidden on mobile) -->
+    <div class="login-side login-side-right" aria-hidden="true"></div>
+
+  </div><!-- /.login-page -->
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ── Toggle password visibility ──────────────────────── */
+      var pwInput   = document.getElementById('password');
+      var toggleBtn = document.getElementById('toggle-pw');
+      var visible   = false;
+
+      if (toggleBtn && pwInput) {
+        var iconShow = document.getElementById('icon-eye-show');
+        var iconHide = document.getElementById('icon-eye-hide');
+        toggleBtn.addEventListener('click', function () {
+          visible      = !visible;
+          pwInput.type = visible ? 'text' : 'password';
+          if (iconShow) iconShow.style.display = visible ? 'none'  : '';
+          if (iconHide) iconHide.style.display = visible ? ''      : 'none';
+          toggleBtn.title = visible ? 'Sembunyikan password' : 'Tampilkan password';
+          toggleBtn.setAttribute('aria-label', toggleBtn.title);
+        });
+      }
+
+      /* ── Loading state on form submit ────────────────────── */
+      var form      = document.getElementById('login-form');
+      var spinner   = document.getElementById('btn-spinner');
+      var btnText   = document.getElementById('btn-text');
+      var btnSubmit = document.getElementById('btn-submit');
+
+      if (form) {
+        form.addEventListener('submit', function () {
+          var user = document.getElementById('username').value.trim();
+          var pass = pwInput ? pwInput.value : '';
+          if (!user || !pass) return;
+
+          if (spinner) spinner.style.display = 'block';
+          if (btnText) btnText.textContent   = 'Memproses…';
+          if (btnSubmit) btnSubmit.disabled  = true;
+        });
+      }
+
+      /* ── Auto-dismiss error after 6 s ────────────────────── */
+      var errEl = document.getElementById('login-error');
+      if (errEl) {
+        setTimeout(function () {
+          errEl.style.transition = 'opacity 0.5s ease';
+          errEl.style.opacity    = '0';
+          setTimeout(function () {
+            errEl.style.display = 'none';
+          }, 500);
+        }, 6000);
+      }
+    })();
+  </script>
+
+</body>
+</html>

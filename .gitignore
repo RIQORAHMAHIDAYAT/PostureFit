@@ -1,51 +1,25 @@
-# Root .gitignore for PostureFit Monorepo
-
-# IDE & OS Specific
-.idea/
-.vscode/
-*.iml
-*.ipr
-*.iws
-.DS_Store
+# Windows system files
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Flutter/Dart root remnants
-.dart_tool/
-.flutter-plugins-dependencies
-build/
+# Python virtual environment
+posturfit_backend/venv/
+posturfit_backend/__pycache__/
+posturfit_backend/*.pyc
+posturfit_backend/.pytest_cache/
 
-# Backend (Node.js/Express/NestJS)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-dist/
-build/
+# Local SQLite databases
+posturfit_backend/*.db
 
-# Backend (Python)
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-env/
-.env/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# Env files
+posturfit_backend/.env
+
+# Flutter / Dart ignores
+mobile_flutter_PostureFit/.dart_tool/
+mobile_flutter_PostureFit/build/
+mobile_flutter_PostureFit/.flutter-plugins
+mobile_flutter_PostureFit/.flutter-plugins-dependencies
+mobile_flutter_PostureFit/local.properties
+mobile_flutter_PostureFit/generated.xcconfig
+mobile_flutter_PostureFit/flutter_export_environment.sh
