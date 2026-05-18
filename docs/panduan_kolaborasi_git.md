@@ -16,53 +16,53 @@ Menggabungkan project **Mobile (Flutter)** dan **Backend** dalam satu repository
 Ada **dua opsi** yang dapat dipilih untuk menyusun folder Anda:
 
 ### Opsi A: Monorepo Terpisah (Sangat Direkomendasikan & Profesional) 🌟
-Semua kode mobile dipindahkan ke subfolder `/mobile` dan backend ke subfolder `/backend`. Struktur ini sangat bersih dan disukai dosen penguji.
+Semua kode mobile dipindahkan ke subfolder `/mobile_flutter_PostureFit` dan backend ke subfolder `/PostureFit_backend`. Struktur ini sangat bersih, rapi, dan disukai dosen penguji.
 
 ```text
 posturefit/
-├── mobile/                 # Seluruh file Flutter dipindahkan ke sini
+├── mobile_flutter_PostureFit/  # Seluruh file Flutter dipindahkan ke sini
 │   ├── lib/
 │   ├── android/
 │   ├── ios/
 │   ├── pubspec.yaml
 │   └── ...
-├── backend/                # Folder baru untuk project backend teman Anda
+├── PostureFit_backend/         # Folder baru untuk project backend teman Anda
 │   ├── src/
 │   ├── package.json (Node.js) atau requirements.txt (Python)
 │   ├── .gitignore (spesifik backend)
 │   └── ...
-├── README.md               # README utama yang menjelaskan kedua project
-├── .gitignore              # .gitignore global untuk monorepo
-└── docs/                   # Folder dokumentasi (termasuk panduan ini)
+├── README.md                   # README utama yang menjelaskan kedua project
+├── .gitignore                  # .gitignore global untuk monorepo
+└── docs/                       # Folder dokumentasi (termasuk panduan ini)
 ```
 
 > [!TIP]
 > **Cara memindahkan file Flutter agar tidak kehilangan history Git:**
 > Jangan lakukan *copy-paste* biasa! Gunakan perintah `git mv` di terminal agar Git tetap melacak history commit lama Anda:
 > ```bash
-> mkdir mobile
-> git mv lib mobile/
-> git mv android mobile/
-> git mv ios mobile/
-> git mv pubspec.yaml mobile/
+> mkdir mobile_flutter_PostureFit
+> git mv lib mobile_flutter_PostureFit/
+> git mv android mobile_flutter_PostureFit/
+> git mv ios mobile_flutter_PostureFit/
+> git mv pubspec.yaml mobile_flutter_PostureFit/
 > # Ulangi untuk folder/file Flutter lainnya, lalu lakukan commit.
 > ```
 
 ### Opsi B: Monorepo Sederhana (Cepat & Tanpa Pindah Folder Flutter)
-Jika Anda khawatir memindahkan folder Flutter akan merusak konfigurasi path IDE saat ini, Anda cukup membuat folder `backend` di dalam root project yang sekarang:
+Jika Anda khawatir memindahkan folder Flutter akan merusak konfigurasi path IDE saat ini, Anda cukup membuat folder `PostureFit_backend` di dalam root project yang sekarang:
 
 ```text
-posturefit/                 # Root tetap berupa project Flutter
+posturefit/                     # Root tetap berupa project Flutter
 ├── lib/
 ├── android/
 ├── ios/
 ├── pubspec.yaml
 ├── ...
-├── backend/                # Folder khusus untuk project backend
+├── PostureFit_backend/         # Folder khusus untuk project backend
 │   ├── src/
 │   ├── package.json
 │   └── ...
-└── README.md               # README utama (diupdate dengan panduan backend)
+└── README.md                   # README utama (diupdate dengan panduan backend)
 ```
 
 ---
@@ -160,8 +160,8 @@ Aplikasi pemantauan postur tubuh berbasis kecerdasan buatan (AI) yang terintegra
 ---
 
 ## 🏗️ Arsitektur Proyek (Monorepo)
-- **/mobile**: Aplikasi Client berbasis **Flutter (Dart)** dengan state management **GetX**.
-- **/backend**: Server API berbasis **[Node.js / Python Fast API / Express]** terhubung ke database **MongoDB Atlas**.
+- **/mobile_flutter_PostureFit**: Aplikasi Client berbasis **Flutter (Dart)** dengan state management **GetX**.
+- **/PostureFit_backend**: Server API berbasis **[Node.js / Python Fast API / Express]** terhubung ke database **MongoDB Atlas**.
 
 ---
 
@@ -186,14 +186,14 @@ cd Posturefit
 
 ### 2. Menjalankan Backend API
 ```bash
-cd backend
+cd PostureFit_backend
 npm install   # atau pip install -r requirements.txt
 npm run dev   # atau python main.py
 ```
 
 ### 3. Menjalankan Mobile App (Flutter)
 ```bash
-cd mobile     # atau tetap di root jika menggunakan Opsi B
+cd mobile_flutter_PostureFit
 flutter pub get
 flutter run
 ```
@@ -210,7 +210,7 @@ Kami menggunakan alur **Git Flow** dan **Conventional Commits**:
 ---
 
 ## 💡 Ringkasan Rekomendasi Langkah Selanjutnya:
-1. **Diskusikan dengan Tim**: Tentukan apakah ingin menggunakan **Opsi A** (memindahkan Flutter ke folder `/mobile`) atau **Opsi B** (langsung buat folder `/backend` di root).
+1. **Diskusikan dengan Tim**: Tentukan apakah ingin menggunakan **Opsi A** (memindahkan Flutter ke folder `/mobile_flutter_PostureFit`) atau **Opsi B** (langsung buat folder `/PostureFit_backend` di root).
 2. **Buat Branch `development`**: Jika belum ada, buat branch `development` di GitHub sebagai tempat penggabungan fitur sehari-hari.
 3. **Mulai Latihan Commit Terstruktur**: Biasakan menulis pesan commit dengan format `<type>(<scope>): <message>` agar riwayat Git terlihat profesional dan rapi!
 
