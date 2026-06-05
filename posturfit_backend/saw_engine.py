@@ -11,16 +11,19 @@ The SAW method works as follows:
     6. The alternative with the highest score wins.
 
 Alternatives (body categories):
-    - Normal
     - Obesitas
-    - Kurus
     - Skinnyfat
+    - Kurus
+    - Normal
 
-Criteria:
-    - C1: BMI                (benefit → higher BMI leans toward Obesitas)
-    - C2: WHtR               (benefit → higher waist-to-height leans toward Obesitas)
-    - C3: Visual WSR (mock)  (benefit → higher visual score leans toward Skinnyfat)
-    - C4: Umur               (cost   → younger = more capacity for intense programs)
+Criteria (TANPA WSR — MediaPipe CV diintegrasikan nanti):
+    - C1: BMI               (benefit → tinggi = cenderung Obesitas)
+    - C2: WHtR              (benefit → tinggi = risiko metabolik tinggi)
+    - C3: Lingkar Perut cm  (benefit → tinggi = cenderung Obesitas/Skinnyfat)
+    - C4: Umur              (cost   → muda = kapasitas program lebih intens)
+
+NOTE: Saat MediaPipe/model CV sudah siap, tambahkan kembali WSR sebagai
+      kriteria C5 dengan bobot ~0.20 dan kurangi bobot kriteria lain.
 """
 
 from dataclasses import dataclass, field
@@ -31,18 +34,18 @@ from typing import Dict, List, Tuple
 # Weights — sum must equal 1.0
 # ---------------------------------------------------------------------------
 CRITERIA_WEIGHTS: Dict[str, float] = {
-    "bmi":  0.35,
-    "whtr": 0.30,
-    "wsr":  0.20,
-    "umur": 0.15,
+    "bmi":    0.40,   # paling dominan
+    "whtr":   0.35,   # rasio pinggang/tinggi = risiko metabolik
+    "lingkar": 0.15,  # lingkar perut absolut (cm)
+    "umur":   0.10,   # usia (cost: makin muda, makin bisa program intens)
 }
 
 # Criteria type: "benefit" (higher is better) or "cost" (lower is better)
 CRITERIA_TYPE: Dict[str, str] = {
-    "bmi":  "benefit",
-    "whtr": "benefit",
-    "wsr":  "benefit",
-    "umur": "cost",
+    "bmi":    "benefit",
+    "whtr":   "benefit",
+    "lingkar": "benefit",
+    "umur":   "cost",
 }
 
 
@@ -53,7 +56,7 @@ RECOMMENDATIONS: Dict[str, str] = {
     "Obesitas": (
         "Fokus pada defisit kalori (500–700 kkal/hari). "
         "Latihan low-impact: jalan cepat 30 menit/hari, swimming, atau cycling. "
-        "Kurangi karbohidrat olahan dan perbanyak serat."
+        "Kurangi karbohidrat olahan, perbanyak serat dan protein tanpa lemak."
     ),
     "Skinnyfat": (
         "Body recomposition: latihan beban 3–4×/minggu (compound movements). "
@@ -91,45 +94,83 @@ class SawAlternative:
 def calculate_saw(
     bmi: float,
     whtr: float,
-    wsr: float,
     umur: int,
+    lingkar_perut_cm: float,
 ) -> Tuple[str, str, Dict[str, float]]:
     """Run the SAW calculation and return the winning category.
 
     Args:
-        bmi:  Body Mass Index.
-        whtr: Waist-to-Height Ratio.
-        wsr:  Waist-Shoulder Ratio (from CV/mock).
-        umur: User age in years.
+        bmi:              Body Mass Index.
+        whtr:             Waist-to-Height Ratio.
+        umur:             User age in years.
+        lingkar_perut_cm: Waist circumference in cm.
 
     Returns:
         Tuple of (kategori_tubuh, rekomendasi_text, scores_dict).
+
+    NOTE: Parameter WSR dihapus sementara sampai model MediaPipe diintegrasikan.
+          Saat itu, tambahkan wsr sebagai parameter dan masukkan ke decision matrix.
     """
 
     # ----- 1. Build the decision matrix (one row per alternative) ----------
-    # These reference profiles represent "ideal" metric patterns for each
-    # body category.  The user's actual metrics are compared against them.
+    # Setiap alternatif mendapat skor mentah berdasarkan rentang nilai yang
+    # paling "cocok" untuk kategori tubuh tersebut.
+    #
+    # Contoh: "Obesitas" mendapat raw BMI = clamp(bmi_user, 30, 50)
+    # → jika bmi_user = 35, maka raw_bmi Obesitas = 35 (paling tinggi)
+    # → setelah normalisasi, Obesitas mendapat skor tertinggi untuk kriteria BMI
     alternatives: List[SawAlternative] = [
-        SawAlternative(name="Obesitas",  raw_scores={"bmi": _clamp(bmi, 30, 50),   "whtr": _clamp(whtr, 0.60, 1.0), "wsr": _clamp(wsr, 0.3, 0.5),  "umur": float(umur)}),
-        SawAlternative(name="Skinnyfat", raw_scores={"bmi": _clamp(bmi, 18.5, 29.9), "whtr": _clamp(whtr, 0.50, 0.59), "wsr": _clamp(wsr, 0.8, 1.0), "umur": float(umur)}),
-        SawAlternative(name="Kurus",     raw_scores={"bmi": _clamp(bmi, 10, 18.4),   "whtr": _clamp(whtr, 0.30, 0.49), "wsr": _clamp(wsr, 0.3, 0.6),  "umur": float(umur)}),
-        SawAlternative(name="Normal",    raw_scores={"bmi": _clamp(bmi, 18.5, 24.9), "whtr": _clamp(whtr, 0.40, 0.50), "wsr": _clamp(wsr, 0.5, 0.7),  "umur": float(umur)}),
+        SawAlternative(
+            name="Obesitas",
+            raw_scores={
+                "bmi":     _suitability(bmi,             30.0, 50.0),
+                "whtr":    _suitability(whtr,             0.60, 1.00),
+                "lingkar": _suitability(lingkar_perut_cm, 90.0, 150.0),
+                "umur":    1.0, # Umur sama untuk semua alternatif
+            },
+        ),
+        SawAlternative(
+            name="Skinnyfat",
+            raw_scores={
+                "bmi":     _suitability(bmi,             18.5, 24.9),
+                "whtr":    _suitability(whtr,             0.50, 0.59),
+                "lingkar": _suitability(lingkar_perut_cm, 75.0, 89.9),
+                "umur":    1.0,
+            },
+        ),
+        SawAlternative(
+            name="Kurus",
+            raw_scores={
+                "bmi":     _suitability(bmi,             10.0, 18.4),
+                "whtr":    _suitability(whtr,             0.30, 0.49),
+                "lingkar": _suitability(lingkar_perut_cm, 40.0, 74.9),
+                "umur":    1.0,
+            },
+        ),
+        SawAlternative(
+            name="Normal",
+            raw_scores={
+                "bmi":     _suitability(bmi,             18.5, 24.9),
+                "whtr":    _suitability(whtr,             0.40, 0.49),
+                "lingkar": _suitability(lingkar_perut_cm, 60.0, 89.9),
+                "umur":    1.0,
+            },
+        ),
     ]
 
     # ----- 2. Determine max and min per criterion across alternatives ------
     criteria = list(CRITERIA_WEIGHTS.keys())
     max_vals = {c: max(a.raw_scores[c] for a in alternatives) for c in criteria}
-    min_vals = {c: min(a.raw_scores[c] for a in alternatives) for c in criteria}
 
     # ----- 3. Normalize -------------------------------------------------------
+    # Karena kita menggunakan _suitability, semua kriteria sekarang adalah "benefit"
+    # (semakin tinggi suitability semakin baik)
     for alt in alternatives:
         for c in criteria:
-            if CRITERIA_TYPE[c] == "benefit":
-                # Benefit: r = x / max(x)
-                alt.norm_scores[c] = alt.raw_scores[c] / max_vals[c] if max_vals[c] != 0 else 0
+            if max_vals[c] != 0:
+                alt.norm_scores[c] = alt.raw_scores[c] / max_vals[c]
             else:
-                # Cost: r = min(x) / x
-                alt.norm_scores[c] = min_vals[c] / alt.raw_scores[c] if alt.raw_scores[c] != 0 else 0
+                alt.norm_scores[c] = 0.0
 
     # ----- 4. Weighted sum ----------------------------------------------------
     for alt in alternatives:
@@ -139,7 +180,6 @@ def calculate_saw(
 
     # ----- 5. Pick the winner -------------------------------------------------
     winner = max(alternatives, key=lambda a: a.final_score)
-
     scores_dict = {alt.name: alt.final_score for alt in alternatives}
 
     return winner.name, RECOMMENDATIONS[winner.name], scores_dict
@@ -148,6 +188,17 @@ def calculate_saw(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-def _clamp(value: float, lo: float, hi: float) -> float:
-    """Clamp *value* to lie within [lo, hi]."""
-    return max(lo, min(hi, value))
+def _suitability(value: float, lo: float, hi: float) -> float:
+    """
+    Menghitung seberapa cocok 'value' masuk ke dalam rentang [lo, hi].
+    Return 1.0 jika masuk rentang. Jika di luar, nilainya berkurang mendekati 0.
+    """
+    if lo <= value <= hi:
+        return 1.0
+    
+    dist = min(abs(value - lo), abs(value - hi))
+    range_span = max(hi - lo, 5.0) # minimal span 5 agar penalti tidak terlalu ekstrem
+    
+    # Skor berkurang seiring jauhnya jarak dari rentang ideal
+    return max(0.0, 1.0 - (dist / range_span))
+

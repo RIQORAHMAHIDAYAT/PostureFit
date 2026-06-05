@@ -22,14 +22,24 @@ class WorkoutPlanBody extends GetView<WorkoutPlanController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _NoAnalysisBanner(),
-                  _StatRow(),
-                  const SizedBox(height: 20),
-                  _TabBar(),
-                  const SizedBox(height: 16),
-                  _WorkoutUtamaCard(),
-                  const SizedBox(height: 20),
-                  _WorkoutTambahanSection(),
-                  const SizedBox(height: 16),
+                  Obx(() {
+                    if (!controller.hasAnalysisData.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _StatRow(),
+                        const SizedBox(height: 20),
+                        _TabBar(),
+                        const SizedBox(height: 16),
+                        _WorkoutUtamaCard(),
+                        const SizedBox(height: 20),
+                        _WorkoutTambahanSection(),
+                        const SizedBox(height: 16),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),

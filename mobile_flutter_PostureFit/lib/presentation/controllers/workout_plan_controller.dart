@@ -26,11 +26,11 @@ class WorkoutPlanController extends GetxController {
 
   // State
   final RxInt selectedTab = 0.obs;
-  final RxDouble progress = 0.85.obs;
-  final RxInt tugasSelesai = 4.obs;
-  final RxInt tugasTotal = 5.obs;
-  final RxInt kalori = 420.obs;
-  final RxInt durasi = 35.obs;
+  final RxDouble progress = 0.0.obs;
+  final RxInt tugasSelesai = 0.obs;
+  final RxInt tugasTotal = 0.obs;
+  final RxInt kalori = 0.obs;
+  final RxInt durasi = 0.obs;
   final RxInt selectedNavIndex = 2.obs;
 
   /// true jika halaman dibuka dari AnalysisResultPage (ada data BMI)
@@ -82,6 +82,12 @@ class WorkoutPlanController extends GetxController {
       // Prioritaskan tab sesuai pilihan lingkungan dari ResultPage
       final int lingkungan = (args['lingkungan'] ?? 0) as int;
       selectedTab.value = lingkungan.clamp(0, tabs.length - 1);
+      // Set mock progress if opened from AnalysisResultPage
+      progress.value = 0.85;
+      tugasSelesai.value = 4;
+      tugasTotal.value = 5;
+      kalori.value = 420;
+      durasi.value = 35;
     } else {
       // Dibuka langsung dari Home tanpa data analisis
       hasAnalysisData.value = false;
@@ -113,6 +119,14 @@ class WorkoutPlanController extends GetxController {
     // Prioritaskan tab sesuai pilihan lingkungan dari ResultPage
     final int lingkungan = (args['lingkungan'] ?? 0) as int;
     selectedTab.value = lingkungan.clamp(0, tabs.length - 1);
+    
+    // Set mock progress
+    progress.value = 0.85;
+    tugasSelesai.value = 4;
+    tugasTotal.value = 5;
+    kalori.value = 420;
+    durasi.value = 35;
+    
     _loadWorkout();
   }
 

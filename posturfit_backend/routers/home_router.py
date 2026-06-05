@@ -1,13 +1,6 @@
-"""
-home_router.py — /api/home endpoints.
-
-Returns dashboard summary with fields aligned to Flutter's:
-    - UserOut        (name, height, weight, bmi, goal, age)
-    - DailyTrackerOut (olahraga, nutrisi, tidur, sleep_duration,
-                       hydration_current, hydration_target, activity_score)
-"""
-
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from datetime import date
 
@@ -27,14 +20,6 @@ def get_home_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Build the dashboard summary for the authenticated user.
-
-    Returns:
-        - user: UserOut — profile snapshot with Flutter field names.
-        - indikator_harian: DailyTrackerOut — today's activity data
-          matching Flutter ActivityEntity (olahraga, nutrisi, tidur,
-          sleep_duration, hydration_current, hydration_target, activity_score).
-    """
     uid     = current_user.id
     hari_ini = date.today()
 

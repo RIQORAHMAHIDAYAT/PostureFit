@@ -17,8 +17,11 @@ Filter yang tersedia:
 """
 
 import json
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy import or_
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -118,6 +121,7 @@ def get_available_categories(db: Session = Depends(get_db)):
     Mengembalikan daftar kategori yang benar-benar ada di database MySQL,
     beserta jumlah artikel per kategori.
     """
+    # pyrefly: ignore [missing-import]
     from sqlalchemy import func
 
     results = (

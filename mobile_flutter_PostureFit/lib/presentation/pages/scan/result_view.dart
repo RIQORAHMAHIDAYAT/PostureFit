@@ -362,26 +362,58 @@ class _AnalysisButton extends GetView<ResultController> {
   @override
   Widget build(BuildContext context) {
     final bottomSafe = MediaQuery.of(context).padding.bottom;
-    return Container(
-      color: AppTheme.bgColor(context),
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomSafe),
-      child: GestureDetector(
-        onTap: controller.onAnalysis,
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFF6AAEE8), Color(0xFF3A7FC1)]),
-            borderRadius: BorderRadius.circular(100),
-            boxShadow: [
-              BoxShadow(color: const Color(0xFF4A90D9).withValues(alpha: 0.35), blurRadius: 14, offset: const Offset(0, 5)),
-            ],
-          ),
-          child: const Center(
-            child: Text('Analysis', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+    return Obx(() {
+      final loading = controller.isLoading.value;
+      return Container(
+        color: AppTheme.bgColor(context),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomSafe),
+        child: GestureDetector(
+          onTap: loading ? null : () => controller.onAnalysis(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: loading
+                  ? const LinearGradient(
+                      colors: [Color(0xFF8BAABE), Color(0xFF6B8BAE)],
+                    )
+                  : const LinearGradient(
+                      colors: [Color(0xFF6AAEE8), Color(0xFF3A7FC1)],
+                    ),
+              borderRadius: BorderRadius.circular(100),
+              boxShadow: loading
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF4A90D9).withValues(alpha: 0.35),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+            ),
+            child: Center(
+              child: loading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Analysis',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

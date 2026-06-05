@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../controllers/profile_controller.dart';
+import '../../../../data/services/auth_service.dart';
+import '../../../../data/models/user_model.dart';
 
 /// Controller untuk halaman Edit Profile.
 /// Mengelola form input, pemilihan foto, dan menyimpan perubahan ke [ProfileController].
@@ -13,21 +15,28 @@ class EditProfileController extends GetxController {
   // ── Form Key ──────────────────────────────────────────────────────────────
   final formKey = GlobalKey<FormState>();
 
-  // ── Text Controllers ──────────────────────────────────────────────────────
+  // ── Services ─────────────────────────────────────────────────────────────────────
+  final _authService = AuthService();
+
+  // ── Text Controllers ────────────────────────────────────────────────────────
   late final TextEditingController nameCtrl;
   late final TextEditingController emailCtrl;
   late final TextEditingController ageCtrl;
   late final TextEditingController heightCtrl;
   late final TextEditingController weightCtrl;
 
-  // ── Reactive State ────────────────────────────────────────────────────────
+  // ── Gender Dropdown ───────────────────────────────────────────────────────
+  final List<String> genderOptions = ['Laki-laki', 'Perempuan'];
+  final RxString selectedGender = ''.obs;
+
+  // ── Reactive State ────────────────────────────────────────────────────────────
   /// Path gambar yang dipilih user (null = belum ada foto baru).
   final Rxn<File> pickedImageFile = Rxn<File>();
 
   /// Menandai apakah operasi simpan sedang berjalan.
   final RxBool isSaving = false.obs;
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  // ── Lifecycle ────────────────────────────────────────────────────────────────
 
   @override
   void onInit() {
@@ -35,9 +44,19 @@ class EditProfileController extends GetxController {
     // Isi form dengan data saat ini dari ProfileController
     nameCtrl   = TextEditingController(text: _profileCtrl.name.value);
     emailCtrl  = TextEditingController(text: _profileCtrl.email.value);
-    ageCtrl    = TextEditingController(text: '${_profileCtrl.age.value}');
-    heightCtrl = TextEditingController(text: '${_profileCtrl.height.value.toInt()}');
-    weightCtrl = TextEditingController(text: '${_profileCtrl.weight.value.toInt()}');
+    ageCtrl    = TextEditingController(
+      text: _profileCtrl.age.value > 0 ? '${_profileCtrl.age.value}' : '',
+    );
+    heightCtrl = TextEditingController(
+      text: _profileCtrl.height.value > 0 ? '${_profileCtrl.height.value.toInt()}' : '',
+    );
+    weightCtrl = TextEditingController(
+      text: _profileCtrl.weight.value > 0 ? '${_profileCtrl.weight.value.toInt()}' : '',
+    );
+    // Set gender awal
+    selectedGender.value = _profileCtrl.gender.value.isNotEmpty
+        ? _profileCtrl.gender.value
+        : '';
   }
 
   @override
@@ -81,34 +100,59 @@ class EditProfileController extends GetxController {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
     isSaving.value = true;
-    await Future.delayed(const Duration(milliseconds: 600)); // simulasi async
+    try {
+      final h = double.tryParse(heightCtrl.text.trim());
+      final w = double.tryParse(weightCtrl.text.trim());
+      final a = int.tryParse(ageCtrl.text.trim());
+      final n = nameCtrl.text.trim();
+      final g = selectedGender.value.isNotEmpty ? selectedGender.value : null;
 
-    // Perbarui data di ProfileController (single source of truth)
-    _profileCtrl.name.value   = nameCtrl.text.trim();
-    _profileCtrl.email.value  = emailCtrl.text.trim();
-    _profileCtrl.age.value    = int.tryParse(ageCtrl.text.trim()) ?? _profileCtrl.age.value;
+      // Panggil API backend untuk simpan ke database
+      final updatedData = await _authService.updateProfile(
+        name: n.isNotEmpty ? n : null,
+        age: a,
+        height: h,
+        weight: w,
+        gender: g,
+      );
 
-    final h = double.tryParse(heightCtrl.text.trim()) ?? _profileCtrl.height.value;
-    final w = double.tryParse(weightCtrl.text.trim()) ?? _profileCtrl.weight.value;
-    _profileCtrl.height.value = h;
-    _profileCtrl.weight.value = w;
-    // Hitung ulang BMI
-    if (h > 0) _profileCtrl.bmi.value = w / ((h / 100) * (h / 100));
+      // Update ProfileController dengan data fresh dari server
+      final updatedUser = UserModel.fromJson(updatedData);
+      _profileCtrl.name.value   = updatedUser.name;
+      _profileCtrl.email.value  = updatedUser.email;
+      _profileCtrl.age.value    = updatedUser.age ?? 0;
+      _profileCtrl.height.value = updatedUser.height ?? 0.0;
+      _profileCtrl.weight.value = updatedUser.weight ?? 0.0;
+      _profileCtrl.bmi.value    = updatedUser.bmi ?? 0.0;
+      _profileCtrl.gender.value = updatedUser.gender ?? '';
 
-    isSaving.value = false;
-
-    Get.back();
-    Get.snackbar(
-      'Berhasil',
-      'Profil kamu berhasil diperbarui!',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF4CAF82),
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 2),
-      icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
-    );
+      Get.back();
+      Get.snackbar(
+        'Berhasil',
+        'Profil kamu berhasil diperbarui!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF4CAF82),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Gagal Menyimpan',
+        e.toString().replaceAll('Exception: ', ''),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade600,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline, color: Colors.white),
+      );
+    } finally {
+      isSaving.value = false;
+    }
   }
 
   // ── Validators ────────────────────────────────────────────────────────────

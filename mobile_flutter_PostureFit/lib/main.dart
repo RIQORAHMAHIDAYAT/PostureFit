@@ -6,8 +6,24 @@ import 'presentation/controllers/theme_controller.dart';
 import 'routes/app_routes.dart';
 import 'routes/app_pages.dart';
 
-void main() {
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:firebase_core/firebase_core.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    if (!kIsWeb && Platform.isAndroid) {
+      await Firebase.initializeApp();
+      print("Firebase Initialized on Android");
+    } else {
+      print("Firebase not initialized for this platform (missing options)");
+    }
+  } catch (e) {
+    print("Firebase init error: $e");
+  }
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -15,7 +31,7 @@ void main() {
     ),
   );
 
-   Get.put(ThemeController(), permanent: true);
+  Get.put(ThemeController(), permanent: true);
 
   runApp(const PostureFitApp());
 }

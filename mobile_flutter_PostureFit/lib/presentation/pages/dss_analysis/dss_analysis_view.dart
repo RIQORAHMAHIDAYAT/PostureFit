@@ -30,15 +30,30 @@ class DssAnalysisView extends GetView<DssAnalysisController> {
                     style: AppTextStyles.headingSmall,
                   ),
                   const SizedBox(height: AppDimensions.paddingMD),
-                  Obx(() => ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: controller.analysisResults.length,
-                        itemBuilder: (context, index) {
-                          final item = controller.analysisResults[index];
-                          return _buildAnalysisItem(context, item);
-                        },
-                      )),
+                  Obx(() {
+                    if (controller.analysisResults.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Text(
+                            'Belum ada riwayat analisis.',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppTheme.textSecondary(context),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: controller.analysisResults.length,
+                      itemBuilder: (context, index) {
+                        final item = controller.analysisResults[index];
+                        return _buildAnalysisItem(context, item);
+                      },
+                    );
+                  }),
                 ],
               ),
             ),

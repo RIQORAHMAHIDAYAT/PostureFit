@@ -8,8 +8,11 @@ class AnalysisResultController extends GetxController {
   late final double lingkarPerut;
   late final int lingkungan; // 0=Rumah, 1=Gym, 2=Calisthenics
 
-  final RxDouble bmi = 0.0.obs;
-  final RxString kategori = ''.obs;
+  final RxDouble bmi        = 0.0.obs;
+  final RxString kategori   = ''.obs;
+  /// Teks rekomendasi dari server (SAW engine)
+  final RxString rekomendasiServer = ''.obs;
+  /// Daftar rekomendasi dengan warna untuk tampilan card UI
   final RxList<Map<String, dynamic>> rekomendasi = <Map<String, dynamic>>[].obs;
 
   @override
@@ -17,19 +20,37 @@ class AnalysisResultController extends GetxController {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>? ?? {};
     tinggiBadan = (args['tinggi'] ?? 170.0).toDouble();
-    beratBadan = (args['berat'] ?? 70.0).toDouble();
-    umur = (args['umur'] ?? 25.0).toDouble();
+    beratBadan  = (args['berat']  ?? 70.0).toDouble();
+    umur        = (args['umur']   ?? 25.0).toDouble();
     lingkarPerut = (args['lingkar'] ?? 80.0).toDouble();
-    lingkungan = (args['lingkungan'] ?? 0) as int;
-    _hitungBMI();
+    lingkungan  = (args['lingkungan'] ?? 0) as int;
+
+    // ── Prioritaskan data dari server ──────────────────────────────────────
+    final serverBmi      = args['bmi'];
+    final serverKategori = args['kategori_tubuh'] as String?;
+    final serverRek      = args['rekomendasi']   as String?;
+
+    if (serverBmi != null && serverKategori != null) {
+      // Gunakan hasil SAW engine dari backend
+      bmi.value      = (serverBmi as num).toDouble();
+      kategori.value = serverKategori;
+      if (serverRek != null) rekomendasiServer.value = serverRek;
+    } else {
+      // Fallback: hitung lokal jika tidak ada data server
+      _hitungBMI();
+    }
+
+    // Selalu generate list rekomendasi UI berdasarkan kategori
+    _generateRekomendasi();
   }
+
 
   void _hitungBMI() {
     final tinggiM = tinggiBadan / 100;
     final nilaBMI = beratBadan / (tinggiM * tinggiM);
     bmi.value = double.parse(nilaBMI.toStringAsFixed(1));
     _tentukanKategori(nilaBMI);
-    _generateRekomendasi();
+    // _generateRekomendasi() dipanggil di onInit setelah blok ini
   }
 
   void _tentukanKategori(double nilaBMI) {
@@ -44,6 +65,9 @@ class AnalysisResultController extends GetxController {
     }
   }
 
+  /// Generate daftar rekomendasi card UI berdasarkan kategori.
+  /// Mendukung kategori dari SAW engine (Obesitas, Skinnyfat, Kurus, Normal)
+  /// dan kategori lokal (Gemuk).
   void _generateRekomendasi() {
     final kat = kategori.value;
     if (kat == 'Kurus') {
@@ -60,6 +84,13 @@ class AnalysisResultController extends GetxController {
         {'warna': 0xFFE07B39, 'teks': 'Kombinasikan latihan kardio dan kekuatan untuk kebugaran optimal.'},
         {'warna': 0xFF9B59B6, 'teks': 'Monitor berat badan secara rutin setiap 2 minggu sekali.'},
       ];
+    } else if (kat == 'Skinnyfat') {
+      rekomendasi.value = [
+        {'warna': 0xFF9B59B6, 'teks': 'Latihan beban 3–4x/minggu dengan compound movements (squat, deadlift, bench press).'},
+        {'warna': 0xFF4A90D9, 'teks': 'Tingkatkan asupan protein 1.6–2.2 g per kg berat badan.'},
+        {'warna': 0xFF3BB88F, 'teks': 'Cardio ringan 2x/minggu untuk menjaga kesehatan kardiovaskular.'},
+        {'warna': 0xFFE07B39, 'teks': 'Fokus body recomposition: tambah otot sambil kurangi lemak.'},
+      ];
     } else if (kat == 'Gemuk') {
       rekomendasi.value = [
         {'warna': 0xFFE07B39, 'teks': 'Kurangi asupan kalori 300–500 kkal/hari dari kebutuhan maintenance.'},
@@ -68,6 +99,7 @@ class AnalysisResultController extends GetxController {
         {'warna': 0xFF9B59B6, 'teks': 'Kurangi makanan olahan, gula tambahan, dan minuman manis.'},
       ];
     } else {
+      // Obesitas (dari SAW engine) atau kategori tidak dikenal
       rekomendasi.value = [
         {'warna': 0xFFE05252, 'teks': 'Konsultasi dengan dokter atau ahli gizi untuk program penurunan berat badan.'},
         {'warna': 0xFFE07B39, 'teks': 'Mulai dengan aktivitas ringan seperti jalan kaki 30 menit setiap hari.'},
@@ -76,6 +108,7 @@ class AnalysisResultController extends GetxController {
       ];
     }
   }
+
 
   // Progress BMI: posisi pada skala 10–40
   double get bmiProgress {

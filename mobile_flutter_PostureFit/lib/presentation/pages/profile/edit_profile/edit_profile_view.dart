@@ -79,6 +79,9 @@ class EditProfileView extends GetView<EditProfileController> {
                             hintText: 'Mis. 24',
                             validator: controller.validateAge,
                           ),
+                          const SizedBox(height: AppDimensions.paddingMD),
+                          // ── Gender Dropdown ──────────────────────────────
+                          _GenderDropdown(),
 
                           const SizedBox(height: AppDimensions.paddingXXL),
 
@@ -259,6 +262,114 @@ class _SectionLabel extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gender Dropdown
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _GenderDropdown extends GetView<EditProfileController> {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillColor = isDark ? const Color(0xFF1A2E4A) : const Color(0xFFF5F8FF);
+    final borderColor = isDark ? const Color(0xFF243B55) : const Color(0xFFE3EDF7);
+    final textColor = isDark ? const Color(0xFFE8F3FC) : const Color(0xFF1A2E4A);
+    final hintColor = isDark ? const Color(0xFF4A6A8A) : const Color(0xFF8BAABE);
+
+    return Obx(() => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.wc_rounded, size: 13, color: AppColors.primary),
+            const SizedBox(width: 5),
+            Text(
+              'Jenis Kelamin',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppTheme.textSecondary(context),
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: fillColor,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
+            border: Border.all(color: borderColor, width: 1.5),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: controller.selectedGender.value.isNotEmpty
+                  ? controller.selectedGender.value
+                  : null,
+              hint: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  'Pilih jenis kelamin',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: hintColor,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              isExpanded: true,
+              icon: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
+              dropdownColor: isDark ? const Color(0xFF1A2E4A) : Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              items: controller.genderOptions.map((gender) {
+                final icon = gender == 'Laki-laki'
+                    ? Icons.male_rounded
+                    : Icons.female_rounded;
+                final color = gender == 'Laki-laki'
+                    ? const Color(0xFF4A90D9)
+                    : const Color(0xFFE91E8C);
+                return DropdownMenuItem<String>(
+                  value: gender,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        margin: const EdgeInsets.only(left: 8, right: 10),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(icon, color: color, size: 18),
+                      ),
+                      Text(
+                        gender,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) controller.selectedGender.value = val;
+              },
+            ),
+          ),
+        ),
+      ],
+    ));
   }
 }
 

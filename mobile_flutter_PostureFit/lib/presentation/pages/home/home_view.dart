@@ -10,7 +10,6 @@ import '../../widgets/feature_button.dart';
 import '../../controllers/home_controller.dart';
 import '../../../routes/app_routes.dart';
 
-// HomeBody: dipakai oleh MainView (IndexedStack) — tanpa bottom nav
 class HomeBody extends GetView<HomeController> {
   const HomeBody({super.key});
 
@@ -18,29 +17,34 @@ class HomeBody extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bgColor(context),
-      body: Column(
-        children: [
-          _HomeAppBar(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLG),
-              child: Column(
-                children: [
-                  const SizedBox(height: AppDimensions.paddingLG),
-                  _GoalCard(),
-                  const SizedBox(height: AppDimensions.paddingLG),
-                  _SleepHydrationRow(),
-                  const SizedBox(height: AppDimensions.paddingLG),
-                  _ActivityScoreCard(),
-                  const SizedBox(height: AppDimensions.paddingLG),
-                  _FeatureGrid(),
-                  const SizedBox(height: AppDimensions.paddingXXL + AppDimensions.navBarHeight),
-                ],
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Column(
+          children: [
+            _HomeAppBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLG),
+                child: Column(
+                  children: [
+                    const SizedBox(height: AppDimensions.paddingLG),
+                    _GoalCard(),
+                    const SizedBox(height: AppDimensions.paddingLG),
+                    _SleepHydrationRow(),
+                    const SizedBox(height: AppDimensions.paddingLG),
+                    _ActivityScoreCard(),
+                    const SizedBox(height: AppDimensions.paddingLG),
+                    _FeatureGrid(),
+                    const SizedBox(height: AppDimensions.paddingXXL + AppDimensions.navBarHeight),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -85,7 +89,7 @@ class _HomeAppBar extends GetView<HomeController> {
                     ),
                   ),
                   Text(
-                    controller.user.value.name,
+                    controller.user.value?.name ?? 'Pengguna',
                     style: AppTextStyles.headingLarge.copyWith(
                       color: Colors.white,
                       fontSize: 22,
@@ -142,6 +146,8 @@ class _GoalCard extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final user = controller.user.value;
+      if (user == null) return const SizedBox();
+
       return AppCard(
         gradient: AppColors.cardGradient,
         child: Column(
@@ -149,7 +155,7 @@ class _GoalCard extends GetView<HomeController> {
           children: [
             Text('Target saat ini', style: AppTextStyles.bodySmall.copyWith(color: AppColors.navInactive)),
             const SizedBox(height: 2),
-            Text(user.goal, style: AppTextStyles.headingLarge.copyWith(color: AppColors.textWhite)),
+            Text(user.goal ?? 'Belum diatur', style: AppTextStyles.headingLarge.copyWith(color: AppColors.textWhite)),
             const SizedBox(height: AppDimensions.paddingMD),
             Row(
               children: [
@@ -157,7 +163,7 @@ class _GoalCard extends GetView<HomeController> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(AppDimensions.radiusCircle),
                     child: const LinearProgressIndicator(
-                      value: 0.62,
+                      value: 0.0, // Dikosongkan sementara (Activity null)
                       backgroundColor: Colors.white24,
                       valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3DD6C8)),
                       minHeight: 6,
@@ -165,15 +171,15 @@ class _GoalCard extends GetView<HomeController> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('62% Tercapai', style: AppTextStyles.captionStyle.copyWith(color: Colors.white)),
+                Text('0% Tercapai', style: AppTextStyles.captionStyle.copyWith(color: Colors.white)),
               ],
             ),
             const SizedBox(height: AppDimensions.paddingXL),
             Row(
               children: [
-                _miniStat('${user.height.toInt()}', 'cm', 'Height'),
-                _miniStat('${user.weight.toInt()}', 'kg', 'Weight'),
-                _miniStat(user.bmi.toStringAsFixed(1), '', 'BMI'),
+                _miniStat('${user.height?.toInt() ?? 0}', 'cm', 'Height'),
+                _miniStat('${user.weight?.toInt() ?? 0}', 'kg', 'Weight'),
+                _miniStat(user.bmi != null && user.bmi! > 0 ? user.bmi!.toStringAsFixed(1) : '-', '', 'BMI'),
               ],
             ),
             const SizedBox(height: AppDimensions.paddingLG),
@@ -349,23 +355,31 @@ class _ActivityScoreCard extends GetView<HomeController> {
 class _FeatureGrid extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Akses lainnya', style: AppTextStyles.headingSmall),
-        const SizedBox(height: AppDimensions.paddingMD),
-        Row(
-          children: [
-            Expanded(child: FeatureButton(icon: Icons.fitness_center_rounded, label: 'Workout\nPlan', onTap: controller.onWorkoutPlanTap, iconColor: AppColors.primary)),
-            const SizedBox(width: AppDimensions.paddingMD),
-            Expanded(child: FeatureButton(icon: Icons.psychology_outlined, label: 'DSS\nAnalis', onTap: controller.onBmiAnalysisTap, iconColor: AppColors.success)),
-            const SizedBox(width: AppDimensions.paddingMD),
-            Expanded(child: FeatureButton(icon: Icons.edit_note_rounded, label: 'Log\nAktivitas', onTap: controller.onLogAktivitasTap, iconColor: AppColors.accent)),
-            const SizedBox(width: AppDimensions.paddingMD),
-            Expanded(child: FeatureButton(icon: Icons.trending_up_rounded, label: 'Laporan\nProgres', onTap: controller.onProgressTrackerTap, iconColor: AppColors.warning)),
-          ],
-        ),
-      ],
-    );
+    return Obx(() {
+      final user = controller.user.value;
+      // Jika user belum analisis (BMI kosong/0), sembunyikan grid ini
+      if (user == null || user.bmi == null || user.bmi! <= 0) {
+        return const SizedBox.shrink();
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Akses lainnya', style: AppTextStyles.headingSmall),
+          const SizedBox(height: AppDimensions.paddingMD),
+          Row(
+            children: [
+              Expanded(child: FeatureButton(icon: Icons.fitness_center_rounded, label: 'Workout\nPlan', onTap: controller.onWorkoutPlanTap, iconColor: AppColors.primary)),
+              const SizedBox(width: AppDimensions.paddingMD),
+              Expanded(child: FeatureButton(icon: Icons.psychology_outlined, label: 'DSS\nAnalis', onTap: controller.onBmiAnalysisTap, iconColor: AppColors.success)),
+              const SizedBox(width: AppDimensions.paddingMD),
+              Expanded(child: FeatureButton(icon: Icons.edit_note_rounded, label: 'Log\nAktivitas', onTap: controller.onLogAktivitasTap, iconColor: AppColors.accent)),
+              const SizedBox(width: AppDimensions.paddingMD),
+              Expanded(child: FeatureButton(icon: Icons.trending_up_rounded, label: 'Laporan\nProgres', onTap: controller.onProgressTrackerTap, iconColor: AppColors.warning)),
+            ],
+          ),
+        ],
+      );
+    });
   }
 }

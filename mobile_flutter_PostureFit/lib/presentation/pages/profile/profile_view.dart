@@ -16,50 +16,55 @@ class ProfileBody extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.cardAltColor(context),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            const ProfileHeader(),
-            const SizedBox(height: AppDimensions.paddingLG),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLG),
-              child: Obx(() => Row(
-                    children: [
-                      ProfileStatCard(
-                        icon: Icons.people_rounded,
-                        iconColor: const Color(0xFF9B59B6),
-                        value: '${controller.age.value}',
-                        unit: 'years',
-                      ),
-                      const SizedBox(width: AppDimensions.paddingMD),
-                      ProfileStatCard(
-                        icon: Icons.height_rounded,
-                        iconColor: AppColors.secondary,
-                        value: '${controller.height.value.toInt()}',
-                        unit: 'cm',
-                      ),
-                      const SizedBox(width: AppDimensions.paddingMD),
-                      ProfileStatCard(
-                        icon: Icons.monitor_weight_rounded,
-                        iconColor: AppColors.success,
-                        value: '${controller.weight.value.toInt()}',
-                        unit: 'kg',
-                      ),
-                    ],
-                  )),
-            ),
-            const SizedBox(height: AppDimensions.paddingLG),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLG),
-              child: _BmiCard(),
-            ),
-            const SizedBox(height: AppDimensions.paddingLG),
-            _SettingsBlock(),
-            SizedBox(height: AppDimensions.paddingXXL + AppDimensions.navBarHeight + 8),
-          ],
-        ),
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              const ProfileHeader(),
+              const SizedBox(height: AppDimensions.paddingLG),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLG),
+                child: Row(
+                  children: [
+                    ProfileStatCard(
+                      icon: Icons.people_rounded,
+                      iconColor: const Color(0xFF9B59B6),
+                      value: '${controller.age.value}',
+                      unit: 'years',
+                    ),
+                    const SizedBox(width: AppDimensions.paddingMD),
+                    ProfileStatCard(
+                      icon: Icons.height_rounded,
+                      iconColor: AppColors.secondary,
+                      value: '${controller.height.value.toInt()}',
+                      unit: 'cm',
+                    ),
+                    const SizedBox(width: AppDimensions.paddingMD),
+                    ProfileStatCard(
+                      icon: Icons.monitor_weight_rounded,
+                      iconColor: AppColors.success,
+                      value: '${controller.weight.value.toInt()}',
+                      unit: 'kg',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppDimensions.paddingLG),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLG),
+                child: _BmiCard(),
+              ),
+              const SizedBox(height: AppDimensions.paddingLG),
+              _SettingsBlock(),
+              SizedBox(height: AppDimensions.paddingXXL + AppDimensions.navBarHeight + 8),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

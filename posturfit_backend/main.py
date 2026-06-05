@@ -13,16 +13,25 @@ import asyncio
 from contextlib import asynccontextmanager
 
 # Muat file .env SEBELUM import lainnya agar os.getenv() bisa membaca nilainya
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 load_dotenv()
 
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+# pyrefly: ignore [missing-import]
 from fastapi.responses import RedirectResponse
+# pyrefly: ignore [missing-import]
 from fastapi.staticfiles import StaticFiles
+# pyrefly: ignore [missing-import]
 from sqladmin import Admin
+# pyrefly: ignore [missing-import]
 from starlette.middleware.sessions import SessionMiddleware
+# pyrefly: ignore [missing-import]
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# pyrefly: ignore [missing-import]
 from apscheduler.triggers.interval import IntervalTrigger
 
 from database import engine, Base
@@ -47,8 +56,10 @@ from routers import (
     progress_router,
 )
 
-# Secret key used to sign session cookies
-_SESSION_SECRET = os.getenv("SESSION_SECRET", "posturfit_session_secret_change_in_prod")
+# Secret key untuk menandatangani session cookie — WAJIB ada di .env
+_SESSION_SECRET = os.getenv("SESSION_SECRET")
+if not _SESSION_SECRET:
+    raise RuntimeError("SESSION_SECRET belum diatur di file .env!")
 
 
 # ---------------------------------------------------------------------------
@@ -66,7 +77,7 @@ async def lifespan(app: FastAPI):
     # Jalankan sinkronisasi pertama kali saat server start
     try:
         result = await sync_education_from_mongo()
-        print(f"[Startup] Sinkronisasi awal MongoDB→MySQL: {result['added']} baru, {result['updated']} diperbarui.")
+        print(f"[Startup] Sinkronisasi awal MongoDB->MySQL: {result['added']} baru, {result['updated']} diperbarui.")
     except Exception as e:
         print(f"[Startup] Sinkronisasi awal gagal (MONGO_URI mungkin belum diatur): {e}")
 
@@ -75,7 +86,7 @@ async def lifespan(app: FastAPI):
         sync_education_from_mongo,
         trigger=IntervalTrigger(hours=6),
         id="sync_education",
-        name="Sync Education MongoDB→MySQL",
+        name="Sync Education MongoDB->MySQL",
         replace_existing=True,
     )
     _scheduler.start()

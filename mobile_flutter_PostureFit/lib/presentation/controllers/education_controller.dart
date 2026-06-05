@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../core/constants/app_constants.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Model
@@ -76,12 +77,11 @@ class EducationController extends GetxController {
   final RxInt                  totalArticles    = 0.obs;
 
   // ── Config ─────────────────────────────────────────────────────────────────
-  /// Ganti sesuai environment:
-  /// Web / Chrome dev  → http://localhost:8000
+  /// Otomatis menyesuaikan platform via AppConstants.baseUrl:
+  /// Web / Chrome dev  → http://127.0.0.1:8000
   /// Emulator Android  → http://10.0.2.2:8000
-  /// Perangkat fisik   → http://<IP_LAPTOP>:8000
-  /// Produksi          → https://api.posturfit.com
-  static const String _baseUrl = 'http://10.0.2.2:8000';
+  /// Perangkat fisik   → http://<IP_LAPTOP>:8000 (via --dart-define=USE_PHYSICAL=true)
+  static String get _baseUrl => AppConstants.baseUrl;
 
   static const int _pageLimit = 20;
 
@@ -105,7 +105,7 @@ class EducationController extends GetxController {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
+      final token = prefs.getString(AppConstants.keyToken) ?? '';
 
       // Bangun URL dengan query params
       final queryParams = <String, String>{

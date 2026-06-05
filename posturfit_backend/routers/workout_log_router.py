@@ -1,12 +1,6 @@
-"""
-workout_log_router.py — /api/workout-log endpoints.
-
-Manages workout session history.
-Response fields aligned with Flutter WorkoutLogController:
-    title, category, duration, calories, date, image
-"""
-
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from database import get_db

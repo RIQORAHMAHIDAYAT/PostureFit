@@ -1,17 +1,20 @@
-"""
-database.py — SQLAlchemy engine, SessionLocal, Base, and get_db dependency.
-
-Uses MySQL via PyMySQL driver. Adjust the URL below if your local
-MySQL credentials differ.
-"""
-
+import os
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv
+# pyrefly: ignore [missing-import]
 from sqlalchemy import create_engine
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+load_dotenv()
+
 # ---------------------------------------------------------------------------
-# Database URL  –  mysql+pymysql://user:password@host:port/db_name
+# Database URL — dibaca dari .env (wajib diatur)
 # ---------------------------------------------------------------------------
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:@127.0.0.1:3306/posturfit"
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+if not SQLALCHEMY_DATABASE_URL:
+    raise RuntimeError("DATABASE_URL belum diatur di file .env!")
+
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,

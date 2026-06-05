@@ -1,7 +1,3 @@
-"""
-routers/__init__.py — exports all router modules.
-"""
-
 from routers import (
     auth_router,
     cv_router,

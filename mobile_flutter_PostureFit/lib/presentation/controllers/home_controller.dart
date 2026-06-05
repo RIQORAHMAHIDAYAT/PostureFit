@@ -1,23 +1,45 @@
 import 'package:get/get.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/entities/activity_entity.dart';
+import '../../data/services/auth_service.dart';
 import '../../../routes/app_routes.dart';
 import 'main_controller.dart';
 
 class HomeController extends GetxController {
   final RxInt selectedNavIndex = 0.obs;
+  
+  final _authService = AuthService();
+  final Rx<UserModel?> user = Rx<UserModel?>(null);
+  final RxBool isLoading = true.obs;
 
-  final Rx<UserModel> user = UserModel.mock.obs;
-
+  // Mengosongkan data dummy activity agar sesuai dengan status awal (kosong)
   final Rx<ActivityEntity> activity = const ActivityEntity(
-    olahraga: 65,
-    nutrisi: 80,
-    tidur: 70,
-    sleepDuration: 7.2,
-    hydrationCurrent: 1680,
+    olahraga: 0,
+    nutrisi: 0,
+    tidur: 0,
+    sleepDuration: 0.0,
+    hydrationCurrent: 0,
     hydrationTarget: 2000,
-    activityScore: 78,
+    activityScore: 0,
   ).obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    isLoading.value = true;
+    try {
+      final userData = await _authService.getMe();
+      user.value = UserModel.fromJson(userData);
+    } catch (e) {
+      print('Gagal mengambil data user: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   double get hydrationPercentage =>
       activity.value.hydrationCurrent / activity.value.hydrationTarget;

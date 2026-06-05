@@ -5,10 +5,12 @@ class UserModel extends UserEntity {
     required super.id,
     required super.name,
     required super.email,
-    required super.height,
-    required super.weight,
-    required super.bmi,
-    required super.goal,
+    super.height,
+    super.weight,
+    super.bmi,
+    super.goal,
+    super.age,
+    super.gender,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -16,10 +18,12 @@ class UserModel extends UserEntity {
       id: json['id'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
-      height: (json['height'] as num).toDouble(),
-      weight: (json['weight'] as num).toDouble(),
-      bmi: (json['bmi'] as num).toDouble(),
-      goal: json['goal'] as String,
+      height: json['height'] != null ? (json['height'] as num).toDouble() : null,
+      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+      bmi: json['bmi'] != null ? (json['bmi'] as num).toDouble() : null,
+      goal: json['goal'] as String?,
+      age: json['age'] != null ? (json['age'] as num).toInt() : null,
+      gender: json['gender'] as String?,
     );
   }
 
@@ -32,6 +36,8 @@ class UserModel extends UserEntity {
       'weight': weight,
       'bmi': bmi,
       'goal': goal,
+      'age': age,
+      'gender': gender,
     };
   }
 
@@ -43,5 +49,7 @@ class UserModel extends UserEntity {
         weight: 78,
         bmi: 28.4,
         goal: 'Cutting - Fat Loss',
+        age: 22,
+        gender: 'Laki-laki',
       );
 }

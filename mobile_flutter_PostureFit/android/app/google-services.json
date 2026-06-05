@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "89474848397",
+    "project_id": "posturfit-d538c",
+    "storage_bucket": "posturfit-d538c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89474848397:android:d1f67903e73221fb6af4c4",
+        "android_client_info": {
+          "package_name": "posturfit.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "89474848397-vsfs9k9ou6s26agbp3lffi26sfbtsoee.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "posturfit.android",
+            "certificate_hash": "225f1e534456a25df1202deaa5256b7042d9916c"
+          }
+        },
+        {
+          "client_id": "89474848397-flshkndtk364r4r7dg4ukoqk8fk723qt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnPP5GDtaX_L_wqjb-Ck-FOr4UtIvGF1A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "89474848397-flshkndtk364r4r7dg4ukoqk8fk723qt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

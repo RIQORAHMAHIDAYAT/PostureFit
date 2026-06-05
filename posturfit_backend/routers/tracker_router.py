@@ -7,7 +7,9 @@ Response fields aligned with Flutter ActivityEntity:
     hydration_current, hydration_target, activity_score
 """
 
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from datetime import date
 

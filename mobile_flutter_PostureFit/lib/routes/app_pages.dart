@@ -34,7 +34,10 @@ import '../bindings/activity_log_binding.dart';
 import '../bindings/dss_analysis_binding.dart';
 import '../bindings/progress_report_binding.dart';
 import '../bindings/workout_log_binding.dart';
+import '../bindings/otp_binding.dart';
+import '../presentation/pages/otp_verification/otp_verification_view.dart';
 import 'app_routes.dart';
+
 
 class AppPages {
   AppPages._();
@@ -58,5 +61,6 @@ class AppPages {
     GetPage(name: AppRoutes.dssAnalysis, page: () => const DssAnalysisView(), binding: DssAnalysisBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.progressReport, page: () => const ProgressReportView(), binding: ProgressReportBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.workoutLog, page: () => const WorkoutLogView(), binding: WorkoutLogBinding(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.otpVerification, page: () => const OtpVerificationView(), binding: OtpBinding(), transition: Transition.downToUp),
   ];
 }

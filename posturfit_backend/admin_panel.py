@@ -1,14 +1,12 @@
-"""
-admin_panel.py — sqladmin ModelView definitions for the admin dashboard.
-
-Access at: http://localhost:8000/admin
-"""
-
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
 from sqlalchemy import func
 from markupsafe import Markup
 from database import get_db
+# pyrefly: ignore [missing-import]
 from sqladmin import ModelView
 from sync_service import sync_education_from_mongo
 from models import (

@@ -1,0 +1,172 @@
+{% extends "sqladmin/base.html" %}
+
+{% block head_tail %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/posturfit-admin.css?v=4">
+<style>
+  /* Fix layout clash */
+  body { background: #f1f5f9 !important; }
+  .pf-main .page-body { margin-top: 0; }
+  .navbar-vertical { display: none !important; } /* Sembunyikan sidebar tabler asli jika muncul */
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pf-layout">
+
+  <!-- ══════════════════════════════════════════
+       SIDEBAR KIRI
+       ══════════════════════════════════════════ -->
+  <aside class="pf-sidebar">
+
+    <!-- Logo -->
+    <div class="pf-sidebar-logo">
+      <div class="pf-logo-icon">💪</div>
+      <div class="pf-logo-text">Posture<em>Fit</em></div>
+    </div>
+
+    <!-- Navigasi -->
+    <nav class="pf-sidebar-nav">
+
+      <div class="pf-nav-section">Main Menu</div>
+
+      <a href="/admin/" class="pf-nav-item {% if request.url.path == '/admin/' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+
+      <a href="/admin/user/list" class="pf-nav-item {% if 'user' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Pengguna
+        <span class="pf-nav-badge" id="nav-user-count">—</span>
+      </a>
+
+      <a href="/admin/cv-assessment/list" class="pf-nav-item {% if 'cv-assessment' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scan Postur
+      </a>
+
+      <a href="/admin/daily-workout-plan/list" class="pf-nav-item {% if 'daily-workout-plan' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>
+        Rencana Latihan
+      </a>
+
+      <div class="pf-nav-section">Konten</div>
+
+      <a href="/admin/education-article/list" class="pf-nav-item {% if 'education-article' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Artikel Edukasi
+      </a>
+
+      <a href="/admin/workout-log/list" class="pf-nav-item {% if 'workout-log' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Riwayat Workout
+      </a>
+
+      <div class="pf-nav-section">Sistem</div>
+
+      <a href="/admin/notification/list" class="pf-nav-item {% if 'notification' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifikasi
+      </a>
+
+      <a href="/admin/admin-user/list" class="pf-nav-item {% if 'admin-user' in request.url.path %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Pengaturan
+      </a>
+
+      <a href="{{ request.url_for('admin:logout') }}" class="pf-nav-item" style="color: #ef4444; margin-top: 10px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+        Keluar
+      </a>
+
+    </nav>
+
+    <!-- Profile Admin -->
+    <div class="pf-sidebar-footer">
+      <a href="/admin-cp/profile" class="pf-admin-profile" style="text-decoration: none;">
+        <div class="pf-admin-avatar">{{ request.session.get('admin_username', 'AD')[:2]|upper }}</div>
+        <div class="pf-admin-info">
+          <div class="pf-admin-name">{{ request.session.get('admin_username', 'Administrator')|capitalize }}</div>
+          <div class="pf-admin-role">Super Admin</div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#475569" style="width:14px;height:14px;flex-shrink:0"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN AREA
+       ══════════════════════════════════════════ -->
+  <div class="pf-main" style="width: 100%; overflow-x: hidden;">
+
+    <!-- ── Header ─────────────────────────────── -->
+    <header class="pf-header">
+      <div>
+        <div class="pf-header-title">{{ title|default('Dashboard') }}</div>
+        <div class="pf-header-breadcrumb">Admin / <span>{{ title|default('Overview') }}</span></div>
+      </div>
+
+      <div class="pf-header-spacer"></div>
+
+      <!-- Search -->
+      <div class="pf-header-search">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Cari..." style="background:transparent;border:none;outline:none;color:inherit;width:100%;font-family:inherit;font-size:inherit;">
+      </div>
+
+      <!-- Notifikasi -->
+      <div class="pf-header-icon-btn" title="Notifikasi">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="pf-notif-dot"></span>
+      </div>
+
+      <!-- Refresh -->
+      <div class="pf-header-icon-btn" title="Refresh" onclick="location.reload()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </div>
+
+      <!-- Live badge -->
+      <div class="pf-live" id="pf-status-badge">
+        <div class="pf-live-dot-wrap">
+          <span class="pf-live-ring"></span>
+          <span class="pf-live-dot"></span>
+        </div>
+        Live
+      </div>
+
+      <div class="pf-header-divider"></div>
+
+      <!-- Avatar -->
+      <div class="pf-header-avatar" title="Profil Admin">{{ request.session.get('admin_username', 'AD')[:2]|upper }}</div>
+
+    </header>
+
+    <!-- CONTENT AREA untuk Tabler / Dashboard -->
+    <div class="page-wrapper" style="padding: 24px; min-height: calc(100vh - 58px);">
+      <div class="page-body flex-grow-1" style="margin-top: 0;">
+        <div class="container-fluid" style="padding: 0;">
+          <div class="row row-deck row-cards" style="margin: 0;">
+            {% block content %} {% endblock %}
+            {% block flash %}
+              {% include 'sqladmin/flash.html' %}
+            {% endblock %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Simple script to fetch total users for the badge in sidebar globally
+  fetch('/admin-api/stats')
+    .then(res => res.json())
+    .then(data => {
+      let b = document.getElementById('nav-user-count');
+      if(b && data.total_users) b.textContent = data.total_users.toLocaleString('id-ID');
+    }).catch(e => console.log('Stats badge error', e));
+</script>
+{% endblock %}

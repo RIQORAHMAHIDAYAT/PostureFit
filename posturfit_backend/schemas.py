@@ -4,7 +4,8 @@ schemas.py — Pydantic models aligned with Flutter frontend field names.
 Field naming convention follows what Flutter expects in JSON responses.
 """
 
-from pydantic import BaseModel, Field
+# pyrefly: ignore [missing-import]
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, Any, List
 from datetime import date, datetime
 
@@ -22,13 +23,35 @@ class ApiResponse(BaseModel):
 # Auth — Request & Response
 # ====================================================================
 class RegisterRequest(BaseModel):
-    name:     str = Field(..., min_length=2)
-    email:    str
+    name: str = Field(..., example="Budi Santoso")
+    email: EmailStr
+    phone_number: Optional[str] = Field(None, example="+6281234567890")
     password: str = Field(..., min_length=6)
 
 class LoginRequest(BaseModel):
     email:    str
     password: str
+
+class GoogleLoginRequest(BaseModel):
+    """Request dari frontend Flutter setelah berhasil login via Google API."""
+    email: str
+    name: str
+
+class SendOtpRequest(BaseModel):
+    """Request kirim OTP ke email baru sebelum akun dibuat."""
+    name:     str = Field(..., min_length=2)
+    email:    str
+    password: str = Field(..., min_length=6)
+
+class VerifyOtpRequest(BaseModel):
+    """Request verifikasi OTP dan finalisasi pembuatan akun."""
+    email:    str
+    otp_code: str = Field(..., min_length=4, max_length=10)
+    phone_number: Optional[str] = Field("-", max_length=20)
+
+class ResendOtpRequest(BaseModel):
+    """Request kirim ulang OTP."""
+    email: str
 
 class Token(BaseModel):
     access_token: str
@@ -55,7 +78,8 @@ class UserOut(BaseModel):
     height:  Optional[float] = None # ← tinggi_cm
     weight:  Optional[float] = None # ← berat_kg
     bmi:     Optional[float] = None # ← bmi_terkini
-    goal:    Optional[str]  = None  # ← fokus_utama
+    goal:    Optional[str]  = None  # ← fokus_utama (hasil SAW: Obesitas/Normal/Kurus/Skinnyfat)
+    fokus_pilihan: Optional[str] = None  # ← pilihan user: Defisit Kalori/Surplus Kalori/Pertahankan
     age:     Optional[int]  = None  # ← umur
     gender:  Optional[str]  = None
     lingkar_perut_cm: Optional[float] = None
@@ -72,6 +96,7 @@ class UserOut(BaseModel):
             weight=float(user.berat_kg) if user.berat_kg is not None else None,
             bmi=float(user.bmi_terkini) if user.bmi_terkini is not None else None,
             goal=user.fokus_utama,
+            fokus_pilihan=getattr(user, 'fokus_pilihan', None),
             age=user.umur,
             gender=user.gender,
             lingkar_perut_cm=float(user.lingkar_perut_cm) if user.lingkar_perut_cm is not None else None,
@@ -101,16 +126,18 @@ class VitalityAssessmentRequest(BaseModel):
     """
     One-shot payload from the Flutter result_view (scan form).
     Matches fields sent by ResultController.onAnalysis():
-      tinggi  → tinggi_cm
-      berat   → berat_kg
-      umur    → umur
-      lingkar → lingkar_perut_cm
+      tinggi        → tinggi_cm
+      berat         → berat_kg
+      umur          → umur
+      lingkar       → lingkar_perut_cm
+      fokus_pilihan → pilihan fokus user (disimpan terpisah dari SAW result)
     """
-    image_url:         str   = ""
-    umur:              int   = Field(..., ge=1, le=120)
-    tinggi_cm:         float = Field(..., gt=0, alias="tinggi")
-    berat_kg:          float = Field(..., gt=0, alias="berat")
-    lingkar_perut_cm:  float = Field(..., gt=0, alias="lingkar")
+    image_url:         str            = ""
+    umur:              int            = Field(..., ge=1, le=120)
+    tinggi_cm:         float          = Field(..., gt=0, alias="tinggi")
+    berat_kg:          float          = Field(..., gt=0, alias="berat")
+    lingkar_perut_cm:  float          = Field(..., gt=0, alias="lingkar")
+    fokus_pilihan:     Optional[str]  = None  # Defisit Kalori / Surplus Kalori / Pertahankan
 
     class Config:
         populate_by_name = True
@@ -314,7 +341,6 @@ class NotificationOut(BaseModel):
 
     @classmethod
     def from_db(cls, notif) -> "NotificationOut":
-        from datetime import timezone
         # Simple relative time
         now = datetime.utcnow()
         diff = now - notif.created_at.replace(tzinfo=None) if notif.created_at else None

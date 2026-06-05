@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../data/services/auth_service.dart';
 import '../widgets/splash_background_widget.dart';
 
 enum SplashState { none, logo2, logo1 }
@@ -94,7 +95,17 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1400));
     if (!mounted) return;
 
-    Get.offAllNamed(AppRoutes.login);
+    // Cek apakah user sudah pernah login (token tersimpan)
+    final authService = AuthService();
+    final isLoggedIn = await authService.isLoggedIn();
+
+    if (isLoggedIn) {
+      // Langsung ke halaman utama — tidak perlu login ulang
+      Get.offAllNamed(AppRoutes.main);
+    } else {
+      // Belum login — arahkan ke halaman login
+      Get.offAllNamed(AppRoutes.login);
+    }
   }
 
   @override

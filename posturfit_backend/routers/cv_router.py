@@ -1,18 +1,7 @@
-"""
-cv_router.py — /api/assessment endpoints.
-
-Receives a one-shot payload (image + form data), runs BMI calculation,
-mock CV analysis, SAW-based recommendations, and persists results.
-
-Payload field names aligned with Flutter ResultController.onAnalysis():
-    tinggi  → tinggi_cm
-    berat   → berat_kg
-    umur    → umur
-    lingkar → lingkar_perut_cm
-"""
-
 import json
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -25,7 +14,7 @@ from schemas import (
     ApiResponse,
 )
 from auth import get_current_user
-from fitness_analysis import analyze_body_image, calculate_bmi, calculate_whtr
+from fitness_analysis import calculate_bmi, calculate_whtr
 from saw_engine import calculate_saw
 
 router = APIRouter(prefix="/api/assessment", tags=["Vitality Assessment"])
@@ -39,7 +28,7 @@ router = APIRouter(prefix="/api/assessment", tags=["Vitality Assessment"])
     response_model=AssessmentResponse,
     status_code=status.HTTP_200_OK,
 )
-async def generate_recommendation(
+def generate_recommendation(
     payload: VitalityAssessmentRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -47,17 +36,18 @@ async def generate_recommendation(
     """Full assessment pipeline:
 
     1. Calculate BMI and WHtR from form data.
-    2. Run (mock) CV analysis on the uploaded image → WSR.
-    3. Feed metrics into the SAW engine → body category + recommendation.
-    4. Update user profile with latest measurements.
-    5. Save a CvAssessment record (with rekomendasi).
-    6. Return structured result.
+    2. Feed metrics into the SAW engine → body category + recommendation.
+    3. Update user profile with latest measurements.
+    4. Save a CvAssessment record to the database.
+    5. Return structured result.
 
-    Flutter sends (from ResultController.onAnalysis):
+    Flutter sends (dari ResultController.onAnalysis):
         tinggi  (alias for tinggi_cm)
         berat   (alias for berat_kg)
         umur
         lingkar (alias for lingkar_perut_cm)
+
+    NOTE: CV/MediaPipe analysis (WSR) akan ditambahkan nanti.
     """
     uid = current_user.id
 
@@ -73,27 +63,24 @@ async def generate_recommendation(
     bmi  = calculate_bmi(payload.berat_kg, payload.tinggi_cm)
     whtr = calculate_whtr(payload.lingkar_perut_cm, payload.tinggi_cm)
 
-    # --- 2. Run mock CV analysis (async) -------------------------------------
-    cv_result = await analyze_body_image(payload.image_url)
-    wsr = cv_result["wsr"]
-
-    # --- 3. SAW engine -------------------------------------------------------
+    # --- 2. SAW engine (menggunakan BMI, WHtR, lingkar perut, umur) ----------
     kategori_tubuh, rekomendasi_teks, saw_scores = calculate_saw(
         bmi=bmi,
         whtr=whtr,
-        wsr=wsr,
         umur=payload.umur,
+        lingkar_perut_cm=payload.lingkar_perut_cm,
     )
 
     # --- 4. Update user profile -----------------------------------------------
-    user.umur            = payload.umur
-    user.tinggi_cm       = payload.tinggi_cm
-    user.berat_kg        = payload.berat_kg
+    user.umur             = payload.umur
+    user.tinggi_cm        = payload.tinggi_cm
+    user.berat_kg         = payload.berat_kg
     user.lingkar_perut_cm = payload.lingkar_perut_cm
-    user.bmi_terkini     = bmi
-    user.fokus_utama     = kategori_tubuh
-    if payload.gender:
-        user.gender = payload.gender
+    user.bmi_terkini      = bmi
+    user.fokus_utama      = kategori_tubuh                  # hasil SAW engine
+    if payload.fokus_pilihan:
+        user.fokus_pilihan = payload.fokus_pilihan          # pilihan user
+
 
     # --- 5. Save assessment record (with rekomendasi) -------------------------
     new_scan = CvAssessment(

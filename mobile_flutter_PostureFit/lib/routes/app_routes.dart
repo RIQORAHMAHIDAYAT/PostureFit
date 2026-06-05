@@ -19,4 +19,5 @@ class AppRoutes {
   static const String workoutLog    = '/workout-log';
   static const String dssAnalysis   = '/dss-analysis';
   static const String progressReport = '/progress-report';
+  static const String otpVerification = '/otp-verification';
 }

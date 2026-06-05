@@ -1,26 +1,35 @@
-"""
-auth.py — JWT Authentication logic.
-Replaces Firebase with local JWT tokens.
-"""
-
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 
+
+# pyrefly: ignore [missing-import]
+from dotenv import load_dotenv
 from jose import JWTError, jwt
+# pyrefly: ignore [missing-import]
 from passlib.context import CryptContext
+# pyrefly: ignore [missing-import]
 from fastapi import Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User
 
+load_dotenv()
+
 # ---------------------------------------------------------------------------
-# Configuration
+# Configuration — nilai WAJIB dibaca dari .env (tidak ada fallback hardcode)
 # ---------------------------------------------------------------------------
-SECRET_KEY = "POSTURFIT_SECRET_KEY_SUPER_SAFE"  # Ganti dengan key yang lebih kuat di prod
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # Token berlaku 7 hari
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET_KEY belum diatur di file .env!")
+
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", str(60 * 24 * 7)))  # Token berlaku 7 hari
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()

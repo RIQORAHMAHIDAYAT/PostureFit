@@ -1,13 +1,9 @@
-"""
-admin_auth.py — sqladmin AuthenticationBackend berbasis database.
-
-Kredensial admin disimpan di tabel `admin_users` dengan password bcrypt.
-Gunakan script create_admin.py untuk membuat akun admin pertama.
-"""
-
 import uuid
+# pyrefly: ignore [missing-import]
 from sqladmin.authentication import AuthenticationBackend
+# pyrefly: ignore [missing-import]
 from starlette.requests import Request
+# pyrefly: ignore [missing-import]
 from passlib.context import CryptContext
 
 from database import SessionLocal

@@ -1,12 +1,6 @@
-"""
-notification_router.py — /api/notifications endpoints.
-
-Manages notifications for Flutter NotificationController.
-Response fields aligned with Flutter NotificationItem:
-    id, title, message, time, type, is_read (isRead)
-"""
-
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -25,11 +19,7 @@ def get_notifications(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Return notifications for Flutter NotificationController.
 
-    Response matches NotificationItem fields:
-        id, title, message, time, type, is_read
-    """
     uid = current_user.id
 
     notifications = (

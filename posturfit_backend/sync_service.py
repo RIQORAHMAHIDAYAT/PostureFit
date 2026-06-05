@@ -20,7 +20,9 @@ import logging
 from datetime import datetime
 from urllib.parse import urlparse
 
+# pyrefly: ignore [missing-import]
 from motor.motor_asyncio import AsyncIOMotorClient
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
@@ -31,10 +33,10 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Koneksi MongoDB
 # ---------------------------------------------------------------------------
-MONGO_URI = os.getenv(
-    "MONGO_URI",
-    "mongodb+srv://<username>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority"
-)
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    raise RuntimeError("MONGO_URI belum diatur di file .env!")
+
 
 _mongo_client = None
 

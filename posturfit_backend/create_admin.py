@@ -1,19 +1,11 @@
-"""
-create_admin.py — Script CLI untuk membuat dan mengelola akun admin.
-
-Jalankan dengan:
-    python create_admin.py              → buat admin baru (interactive)
-    python create_admin.py --list       → tampilkan semua admin
-    python create_admin.py --delete <username>   → hapus admin
-    python create_admin.py --reset <username>    → reset password admin
-"""
-
 import sys
 import getpass
 import argparse
 from datetime import datetime
 
+# pyrefly: ignore [missing-import]
 from passlib.context import CryptContext
+# pyrefly: ignore [missing-import]
 from sqlalchemy.exc import IntegrityError
 
 from database import Base, engine, SessionLocal

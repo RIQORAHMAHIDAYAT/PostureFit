@@ -1,11 +1,8 @@
-"""
-progress_router.py — /api/progress endpoints.
-
-Serves chart data for Flutter ProgressReportController.
-Supports periods: Harian (7 days), Mingguan (4 weeks), Bulanan (6 months).
-"""
-
+# pyrefly: ignore [missing-import]
+from models import User
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, status
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 from typing import Optional
@@ -27,17 +24,7 @@ def get_progress(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Return progress data for Flutter ProgressReportController chart.
 
-    Query params:
-        period: 'Harian' | 'Mingguan' | 'Bulanan'
-            Harian   → last 7 days  (one point per day)
-            Mingguan → last 28 days (one point per week — avg of 7 days)
-            Bulanan  → last 6 months (one point per month — avg of 30 days)
-
-    Response:
-        data: list of { tanggal, activity_score, olahraga, nutrisi, tidur }
-    """
     uid   = current_user.id
     today = date.today()
 
