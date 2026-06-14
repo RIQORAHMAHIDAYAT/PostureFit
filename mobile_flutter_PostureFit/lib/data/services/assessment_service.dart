@@ -22,6 +22,7 @@ class AssessmentService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
+      'ngrok-skip-browser-warning': '69420',
     };
   }
 

@@ -36,6 +36,10 @@ import '../bindings/progress_report_binding.dart';
 import '../bindings/workout_log_binding.dart';
 import '../bindings/otp_binding.dart';
 import '../presentation/pages/otp_verification/otp_verification_view.dart';
+import '../bindings/forgot_password_binding.dart';
+import '../presentation/pages/forgot_password/forgot_password_view.dart';
+import '../presentation/pages/forgot_password/reset_otp_view.dart';
+import '../presentation/pages/forgot_password/new_password_view.dart';
 import 'app_routes.dart';
 
 
@@ -62,5 +66,8 @@ class AppPages {
     GetPage(name: AppRoutes.progressReport, page: () => const ProgressReportView(), binding: ProgressReportBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.workoutLog, page: () => const WorkoutLogView(), binding: WorkoutLogBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.otpVerification, page: () => const OtpVerificationView(), binding: OtpBinding(), transition: Transition.downToUp),
+    GetPage(name: AppRoutes.forgotPassword, page: () => const ForgotPasswordView(), binding: ForgotPasswordBinding(), transition: Transition.downToUp),
+    GetPage(name: AppRoutes.resetOtpVerification, page: () => const ResetOtpView(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.newPassword, page: () => const NewPasswordView(), transition: Transition.cupertino),
   ];
 }

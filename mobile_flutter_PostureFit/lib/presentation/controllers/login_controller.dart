@@ -99,8 +99,13 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
+    // TIDAK memanggil .dispose() pada TextEditingControllers di sini.
+    // Alasan: saat Get.offAllNamed(AppRoutes.login) dipanggil (misalnya setelah reset password),
+    // GetX bisa saja me-reuse LoginController ini untuk halaman login yang baru.
+    // Lalu saat animasi halaman login yang lama selesai, GetX memanggil onClose() ini.
+    // Jika kita dispose controllernya, halaman login yang baru akan crash dengan
+    // "TextEditingController used after being disposed".
+    // Dart GC akan membersihkan memory-nya secara otomatis.
     super.onClose();
   }
 }

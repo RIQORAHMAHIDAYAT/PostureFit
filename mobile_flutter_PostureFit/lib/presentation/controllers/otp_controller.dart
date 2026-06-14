@@ -49,12 +49,9 @@ class OtpController extends GetxController {
   @override
   void onClose() {
     _timer?.cancel();
-    for (final c in otpControllers) {
-      c.dispose();
-    }
-    for (final f in focusNodes) {
-      f.dispose();
-    }
+    // TIDAK memanggil .dispose() pada TextEditingControllers & FocusNodes di sini.
+    // Menghindari crash "_dependents.isEmpty is not true" saat animasi route berjalan.
+    // Dart GC akan membersihkan semuanya secara otomatis.
     super.onClose();
   }
 

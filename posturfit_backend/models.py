@@ -40,6 +40,8 @@ class User(Base):
     fokus_utama = Column(String(50), nullable=True)
     # → frontend: fokus_pilihan (pilihan user: Defisit Kalori/Surplus Kalori/Pertahankan)
     fokus_pilihan = Column(String(50), nullable=True)
+    # → frontend: profilePicture
+    foto_profil = Column(String(500), nullable=True)
     umur = Column(Integer, nullable=True)                 # → frontend: age
     # → frontend: height
     tinggi_cm = Column(DECIMAL(5, 2), nullable=True)
@@ -261,3 +263,20 @@ class OtpRequest(Base):
     is_used = Column(Boolean, default=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ---------------------------------------------------------------------------
+# PasswordResetOtp  —  OTP khusus untuk reset password (lupa password)
+# Dipisah dari otp_requests agar tidak konflik dengan alur registrasi
+# ---------------------------------------------------------------------------
+class PasswordResetOtp(Base):
+    __tablename__ = "password_reset_otps"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(100), nullable=False, index=True)
+    otp_code = Column(String(10), nullable=False)
+    is_used = Column(Boolean, default=False)
+    is_verified = Column(Boolean, default=False)  # True setelah OTP diverifikasi, sebelum password diganti
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+

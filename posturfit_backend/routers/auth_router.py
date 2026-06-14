@@ -1,18 +1,21 @@
 from datetime import datetime, timedelta
 
 # pyrefly: ignore [missing-import]
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+import os
+import shutil
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User, OtpRequest
+from models import User, OtpRequest, PasswordResetOtp
 from auth import hash_password, verify_password, create_access_token, get_current_user
-from otp_service import generate_otp, send_otp_email, OTP_EXPIRE_MINUTES
+from otp_service import generate_otp, send_otp_email, OTP_EXPIRE_MINUTES, send_html_email
 from schemas import (
     ApiResponse, UserOut, ProfileUpdateRequest,
     LoginRequest, GoogleLoginRequest, RegisterRequest, Token,
     SendOtpRequest, VerifyOtpRequest, ResendOtpRequest,
+    ForgotPasswordSendOtpRequest, ForgotPasswordVerifyOtpRequest, ForgotPasswordResetRequest,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -315,3 +318,249 @@ def update_profile(
         message="Profil berhasil diperbarui.",
         data=UserOut.from_db(current_user).model_dump(),
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/profile-picture — Upload profile picture
+# ---------------------------------------------------------------------------
+@router.post("/profile-picture", response_model=ApiResponse, status_code=status.HTTP_200_OK)
+def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Upload or update profile picture."""
+    upload_dir = "static/profiles"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_ext = file.filename.split(".")[-1]
+    filename = f"{current_user.id}_{int(datetime.utcnow().timestamp())}.{file_ext}"
+    file_path = os.path.join(upload_dir, filename)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    image_url = f"/static/profiles/{filename}"
+    
+    current_user.foto_profil = image_url
+    db.commit()
+    db.refresh(current_user)
+    
+    return ApiResponse(
+        status="success",
+        message="Foto profil berhasil diperbarui.",
+        data=UserOut.from_db(current_user).model_dump(),
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/forgot-password/send-otp — Kirim OTP reset password
+# ---------------------------------------------------------------------------
+@router.post("/forgot-password/send-otp", response_model=ApiResponse, status_code=status.HTTP_200_OK)
+def forgot_password_send_otp(payload: ForgotPasswordSendOtpRequest, db: Session = Depends(get_db)):
+    """
+    Langkah 1 lupa password: kirim OTP ke email yang sudah terdaftar.
+    Jika email tidak terdaftar → tolak (agar tidak bocorkan informasi: tampilkan pesan netral).
+    """
+    # Cek apakah email terdaftar
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        # Kembalikan pesan yang sama agar tidak bocorkan info akun
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email tidak terdaftar. Silakan periksa kembali email Anda.",
+        )
+
+    # Hapus OTP reset yang belum digunakan sebelumnya
+    db.query(PasswordResetOtp).filter(
+        PasswordResetOtp.email == payload.email,
+        PasswordResetOtp.is_used == False,
+    ).delete()
+    db.commit()
+
+    # Buat OTP baru
+    otp_code = generate_otp()
+    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
+
+    reset_otp = PasswordResetOtp(
+        email=payload.email,
+        otp_code=otp_code,
+        is_used=False,
+        is_verified=False,
+        expires_at=expires_at,
+    )
+    db.add(reset_otp)
+    db.commit()
+
+    # Kirim email OTP dengan template reset password
+    html_body = _build_reset_otp_email(user.nama_lengkap, otp_code, OTP_EXPIRE_MINUTES)
+    sent = send_html_email(payload.email, "Reset Password PostureFit", html_body)
+
+    if not sent:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Gagal mengirim email. Coba lagi.",
+        )
+
+    return ApiResponse(
+        status="success",
+        message=f"Kode OTP reset password telah dikirim ke {payload.email}. Berlaku {OTP_EXPIRE_MINUTES} menit.",
+        data={"email": payload.email, "expires_minutes": OTP_EXPIRE_MINUTES},
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/forgot-password/verify-otp — Verifikasi OTP reset password
+# ---------------------------------------------------------------------------
+@router.post("/forgot-password/verify-otp", response_model=ApiResponse, status_code=status.HTTP_200_OK)
+def forgot_password_verify_otp(payload: ForgotPasswordVerifyOtpRequest, db: Session = Depends(get_db)):
+    """
+    Langkah 2 lupa password: verifikasi kode OTP.
+    Jika valid → tandai is_verified=True → user dapat lanjut ganti password.
+    """
+    reset_otp = (
+        db.query(PasswordResetOtp)
+        .filter(
+            PasswordResetOtp.email == payload.email,
+            PasswordResetOtp.is_used == False,
+        )
+        .order_by(PasswordResetOtp.created_at.desc())
+        .first()
+    )
+
+    if not reset_otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP tidak ditemukan. Silakan minta kode baru.",
+        )
+
+    if datetime.utcnow() > reset_otp.expires_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Kode OTP sudah kadaluarsa. Silakan minta kode baru.",
+        )
+
+    if reset_otp.otp_code != payload.otp_code.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Kode OTP tidak valid.",
+        )
+
+    # Tandai OTP telah terverifikasi (belum digunakan, karena masih perlu reset password)
+    reset_otp.is_verified = True
+    db.commit()
+
+    return ApiResponse(
+        status="success",
+        message="OTP berhasil diverifikasi. Silakan buat password baru.",
+        data={"email": payload.email},
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/auth/forgot-password/reset — Ganti password setelah OTP terverifikasi
+# ---------------------------------------------------------------------------
+@router.post("/forgot-password/reset", response_model=ApiResponse, status_code=status.HTTP_200_OK)
+def forgot_password_reset(payload: ForgotPasswordResetRequest, db: Session = Depends(get_db)):
+    """
+    Langkah 3 lupa password: ganti password setelah OTP terverifikasi.
+    Memvalidasi bahwa OTP sudah diverifikasi sebelum diizinkan ganti password.
+    """
+    # Cek OTP yang sudah terverifikasi
+    reset_otp = (
+        db.query(PasswordResetOtp)
+        .filter(
+            PasswordResetOtp.email == payload.email,
+            PasswordResetOtp.is_verified == True,
+            PasswordResetOtp.is_used == False,
+        )
+        .order_by(PasswordResetOtp.created_at.desc())
+        .first()
+    )
+
+    if not reset_otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Sesi reset password tidak valid. Silakan ulangi proses dari awal.",
+        )
+
+    if datetime.utcnow() > reset_otp.expires_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Sesi reset password telah kadaluarsa. Silakan ulangi proses.",
+        )
+
+    # Cari user
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Akun tidak ditemukan.",
+        )
+
+    # Update password
+    user.password_hash = hash_password(payload.new_password)
+
+    # Tandai OTP sebagai sudah digunakan
+    reset_otp.is_used = True
+
+    db.commit()
+
+    return ApiResponse(
+        status="success",
+        message="Password berhasil diubah. Silakan login dengan password baru Anda.",
+        data={"email": payload.email},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Helper: Template Email OTP Reset Password
+# ---------------------------------------------------------------------------
+def _build_reset_otp_email(name: str, otp: str, expire_minutes: int) -> str:
+    return f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }}
+    .container {{ max-width: 520px; margin: 40px auto; background: white; border-radius: 16px;
+                  box-shadow: 0 4px 24px rgba(0,0,0,0.08); overflow: hidden; }}
+    .header {{ background: linear-gradient(135deg, #FF6B6B, #FF8E53); padding: 32px 24px; text-align: center; }}
+    .header h1 {{ color: white; margin: 12px 0 0; font-size: 24px; font-weight: 700; }}
+    .body {{ padding: 32px 24px; }}
+    .body p {{ color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 16px; }}
+    .otp-box {{ background: #fff5f5; border: 2px dashed #FF6B6B; border-radius: 12px;
+                text-align: center; padding: 24px; margin: 24px 0; }}
+    .otp-code {{ font-size: 40px; font-weight: 800; letter-spacing: 10px; color: #c62828;
+                  font-family: 'Courier New', monospace; }}
+    .expire {{ color: #999; font-size: 13px; margin-top: 8px; }}
+    .footer {{ background: #fafafa; padding: 20px 24px; text-align: center; color: #bbb; font-size: 12px; }}
+    .warning {{ background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px 16px;
+                border-radius: 4px; color: #795548; font-size: 13px; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 PostureFit</h1>
+    </div>
+    <div class="body">
+      <p>Halo <strong>{name}</strong>,</p>
+      <p>Kami menerima permintaan untuk <strong>mereset password</strong> akun PostureFit Anda. Gunakan kode OTP di bawah ini untuk melanjutkan proses.</p>
+      <div class="otp-box">
+        <div class="otp-code">{otp}</div>
+        <div class="expire">⏱ Berlaku selama {expire_minutes} menit</div>
+      </div>
+      <div class="warning">
+        ⚠️ Jangan bagikan kode ini kepada siapa pun. Jika Anda tidak meminta reset password, abaikan email ini dan password Anda tidak akan berubah.
+      </div>
+    </div>
+    <div class="footer">
+      &copy; 2026 PostureFit · Semua hak dilindungi<br>
+      Jaga postur, jaga kesehatan 💪
+    </div>
+  </div>
+</body>
+</html>
+"""

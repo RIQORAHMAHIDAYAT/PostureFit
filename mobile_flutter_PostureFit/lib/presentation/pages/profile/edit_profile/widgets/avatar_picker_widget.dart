@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_text_styles.dart';
+import '../../../../../core/constants/app_constants.dart';
+import '../../../../controllers/profile_controller.dart';
 import '../edit_profile_controller.dart';
 
 /// Helper: ambil 2 huruf kapital dari nama
@@ -57,7 +59,19 @@ class AvatarPickerWidget extends GetView<EditProfileController> {
                             height: 104,
                           ),
                         )
-                      : _InitialsAvatar(initials: _computeInitials(controller.nameCtrl.text)),
+                      : Get.find<ProfileController>().profilePicture.value.isNotEmpty
+                          ? ClipOval(
+                              child: Image.network(
+                                '${AppConstants.baseUrl}${Get.find<ProfileController>().profilePicture.value}',
+                                fit: BoxFit.cover,
+                                width: 104,
+                                height: 104,
+                                headers: const {'ngrok-skip-browser-warning': '69420'},
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _InitialsAvatar(initials: _computeInitials(controller.nameCtrl.text)),
+                              ),
+                            )
+                          : _InitialsAvatar(initials: _computeInitials(controller.nameCtrl.text)),
                 );
               }),
 

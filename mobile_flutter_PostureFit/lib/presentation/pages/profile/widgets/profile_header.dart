@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../profile_controller.dart';
 
 /// Gradient header with avatar, name, email, and edit-icon.
@@ -20,9 +22,9 @@ class ProfileHeader extends GetView<ProfileController> {
         right: AppDimensions.paddingLG,
       ),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryAppBarGradient,
+        gradient: AppTheme.primaryAppBarGradient(context),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-        boxShadow: AppColors.primaryAppBarShadow,
+        boxShadow: Theme.of(context).brightness == Brightness.dark ? [] : AppColors.primaryAppBarShadow,
       ),
       child: Column(
         children: [
@@ -45,16 +47,34 @@ class ProfileHeader extends GetView<ProfileController> {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        controller.initials,
-                        style: AppTextStyles.displayMedium.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 30,
-                        ),
-                      ),
-                    ),
+                    child: controller.profilePicture.value.isNotEmpty
+                        ? ClipOval(
+                            child: Image.network(
+                              '${AppConstants.baseUrl}${controller.profilePicture.value}',
+                              fit: BoxFit.cover,
+                              headers: const {'ngrok-skip-browser-warning': '69420'},
+                              errorBuilder: (context, error, stackTrace) => Center(
+                                child: Text(
+                                  controller.initials,
+                                  style: AppTextStyles.displayMedium.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 30,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              controller.initials,
+                              style: AppTextStyles.displayMedium.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 30,
+                              ),
+                            ),
+                          ),
                   )),
               // Camera badge
               Positioned(

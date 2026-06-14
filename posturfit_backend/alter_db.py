@@ -14,6 +14,10 @@ migrations = [
         "ALTER TABLE users ADD COLUMN fokus_pilihan VARCHAR(50);",
         "Added fokus_pilihan column to users table.",
     ),
+    (
+        "ALTER TABLE users ADD COLUMN foto_profil VARCHAR(500);",
+        "Added foto_profil column to users table.",
+    ),
 ]
 
 with engine.begin() as conn:
