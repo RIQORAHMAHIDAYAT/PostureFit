@@ -217,12 +217,12 @@ class _CategoryFilterBar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: isActive ? AppColors.primaryGradient : null,
-                  color: isActive ? null : AppColors.inputBackground,
+                  color: isActive ? null : AppTheme.inputBg(context),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: isActive
                         ? Colors.transparent
-                        : AppColors.inputBorder,
+                        : AppTheme.borderColor(context),
                     width: 1,
                   ),
                   boxShadow: isActive
@@ -238,7 +238,7 @@ class _CategoryFilterBar extends StatelessWidget {
                 child: Text(
                   label,
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: isActive ? Colors.white : AppColors.textSecondary,
+                    color: isActive ? Colors.white : AppTheme.textSecondary(context),
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
@@ -270,19 +270,19 @@ class _ErrorState extends StatelessWidget {
             Icon(
               Icons.wifi_off_rounded,
               size: 64,
-              color: AppColors.textLight.withValues(alpha: 0.5),
+              color: AppTheme.textSecondary(context).withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Gagal memuat artikel',
               style: AppTextStyles.headingMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: AppTheme.textSecondary(context),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textLight),
+              style: AppTextStyles.bodySmall.copyWith(color: AppTheme.textSecondary(context).withValues(alpha: 0.7)),
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,

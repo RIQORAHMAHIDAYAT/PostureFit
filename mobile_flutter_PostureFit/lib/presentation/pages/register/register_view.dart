@@ -69,7 +69,6 @@ class RegisterView extends GetView<RegisterController> {
                             keyboardType: TextInputType.name,
                             prefixIcon: const Icon(
                               Icons.person_outline_rounded,
-                              color: AppColors.textLight,
                               size: AppDimensions.iconMD,
                             ),
                             validator: (v) {
@@ -85,7 +84,6 @@ class RegisterView extends GetView<RegisterController> {
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: const Icon(
                               Icons.mail_outline_rounded,
-                              color: AppColors.textLight,
                               size: AppDimensions.iconMD,
                             ),
                             validator: (v) {
@@ -102,7 +100,6 @@ class RegisterView extends GetView<RegisterController> {
                             isPassword: true,
                             prefixIcon: const Icon(
                               Icons.lock_outline_rounded,
-                              color: AppColors.textLight,
                               size: AppDimensions.iconMD,
                             ),
                             validator: (v) {
@@ -119,7 +116,6 @@ class RegisterView extends GetView<RegisterController> {
                             isPassword: true,
                             prefixIcon: const Icon(
                               Icons.lock_outline_rounded,
-                              color: AppColors.textLight,
                               size: AppDimensions.iconMD,
                             ),
                             validator: (v) {

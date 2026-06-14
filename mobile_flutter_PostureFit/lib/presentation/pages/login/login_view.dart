@@ -69,7 +69,6 @@ class LoginView extends GetView<LoginController> {
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: const Icon(
                               Icons.mail_outline_rounded,
-                              color: AppColors.textLight,
                               size: AppDimensions.iconMD,
                             ),
                             validator: (v) {
@@ -86,7 +85,6 @@ class LoginView extends GetView<LoginController> {
                             isPassword: true,
                             prefixIcon: const Icon(
                               Icons.lock_outline_rounded,
-                              color: AppColors.textLight,
                               size: AppDimensions.iconMD,
                             ),
                             validator: (v) {

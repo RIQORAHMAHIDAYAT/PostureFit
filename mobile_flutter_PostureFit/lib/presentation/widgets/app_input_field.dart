@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/theme/app_theme.dart';
 
 class AppInputField extends StatefulWidget {
   final String label;
@@ -42,7 +43,7 @@ class _AppInputFieldState extends State<AppInputField> {
           style: AppTextStyles.captionStyle.copyWith(
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
-            color: AppColors.textSecondary,
+            color: AppTheme.textSecondary(context),
           ),
         ),
         const SizedBox(height: AppDimensions.paddingXS + 2),
@@ -53,18 +54,23 @@ class _AppInputFieldState extends State<AppInputField> {
           validator: widget.validator,
           onChanged: widget.onChanged,
           style: AppTextStyles.bodyLarge.copyWith(
-            color: AppColors.textPrimary,
+            color: AppTheme.textPrimary(context),
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textLight,
+              color: AppTheme.textSecondary(context).withValues(alpha: 0.6),
             ),
             prefixIcon: widget.prefixIcon != null
                 ? Padding(
                     padding: const EdgeInsets.all(AppDimensions.paddingMD),
-                    child: widget.prefixIcon,
+                    child: IconTheme(
+                      data: IconThemeData(
+                        color: AppTheme.textSecondary(context),
+                      ),
+                      child: widget.prefixIcon!,
+                    ),
                   )
                 : null,
             suffixIcon: widget.isPassword
@@ -74,24 +80,24 @@ class _AppInputFieldState extends State<AppInputField> {
                       _obscure
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: AppColors.textLight,
+                      color: AppTheme.textSecondary(context),
                       size: AppDimensions.iconMD,
                     ),
                   )
                 : null,
             filled: true,
-            fillColor: AppColors.inputBackground,
+            fillColor: AppTheme.inputBg(context),
             border: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(AppDimensions.radiusMD),
               borderSide:
-                  const BorderSide(color: AppColors.inputBorder, width: 1),
+                  BorderSide(color: AppTheme.borderColor(context), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(AppDimensions.radiusMD),
               borderSide:
-                  const BorderSide(color: AppColors.inputBorder, width: 1),
+                  BorderSide(color: AppTheme.borderColor(context), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius:
