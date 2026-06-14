@@ -107,6 +107,13 @@ class EditProfileController extends GetxController {
       final n = nameCtrl.text.trim();
       final g = selectedGender.value.isNotEmpty ? selectedGender.value : null;
 
+      // Upload image if selected
+      if (pickedImageFile.value != null) {
+        final imgData = await _authService.uploadProfilePicture(pickedImageFile.value!);
+        final imgUser = UserModel.fromJson(imgData);
+        _profileCtrl.profilePicture.value = imgUser.profilePicture ?? '';
+      }
+
       // Panggil API backend untuk simpan ke database
       final updatedData = await _authService.updateProfile(
         name: n.isNotEmpty ? n : null,
@@ -125,6 +132,9 @@ class EditProfileController extends GetxController {
       _profileCtrl.weight.value = updatedUser.weight ?? 0.0;
       _profileCtrl.bmi.value    = updatedUser.bmi ?? 0.0;
       _profileCtrl.gender.value = updatedUser.gender ?? '';
+      if (updatedUser.profilePicture != null) {
+        _profileCtrl.profilePicture.value = updatedUser.profilePicture!;
+      }
 
       Get.back();
       Get.snackbar(

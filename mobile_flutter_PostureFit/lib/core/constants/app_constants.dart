@@ -21,18 +21,8 @@ class AppConstants {
       bool.fromEnvironment('USE_PHYSICAL', defaultValue: false);
 
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://127.0.0.1:8000'; // Browser Web
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      if (_usePhysical) {
-        // HP Fisik via Wi-Fi — backend harus dijalankan dengan --host 0.0.0.0
-        return 'http://$_pcLocalIp:8000';
-      }
-      // Emulator Android Studio
-      return 'http://10.0.2.2:8000';
-    }
-    return 'http://127.0.0.1:8000'; // Windows / Platform lain
+    // Menggunakan URL ngrok agar bisa diakses dari HP fisik maupun emulator
+    return 'https://balsamic-populace-octagon.ngrok-free.dev';
   }
 
   // -------------------------------------------------------------------------

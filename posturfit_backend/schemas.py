@@ -53,6 +53,20 @@ class ResendOtpRequest(BaseModel):
     """Request kirim ulang OTP."""
     email: str
 
+class ForgotPasswordSendOtpRequest(BaseModel):
+    """Request kirim OTP untuk lupa password (email harus sudah terdaftar)."""
+    email: str
+
+class ForgotPasswordVerifyOtpRequest(BaseModel):
+    """Request verifikasi OTP untuk lupa password."""
+    email: str
+    otp_code: str = Field(..., min_length=4, max_length=10)
+
+class ForgotPasswordResetRequest(BaseModel):
+    """Request ganti password setelah OTP terverifikasi."""
+    email: str
+    new_password: str = Field(..., min_length=6)
+
 class Token(BaseModel):
     access_token: str
     token_type:   str
@@ -82,6 +96,7 @@ class UserOut(BaseModel):
     fokus_pilihan: Optional[str] = None  # ← pilihan user: Defisit Kalori/Surplus Kalori/Pertahankan
     age:     Optional[int]  = None  # ← umur
     gender:  Optional[str]  = None
+    profile_picture: Optional[str] = None # ← foto_profil
     lingkar_perut_cm: Optional[float] = None
     created_at: Optional[datetime] = None
 
@@ -99,6 +114,7 @@ class UserOut(BaseModel):
             fokus_pilihan=getattr(user, 'fokus_pilihan', None),
             age=user.umur,
             gender=user.gender,
+            profile_picture=getattr(user, 'foto_profil', None),
             lingkar_perut_cm=float(user.lingkar_perut_cm) if user.lingkar_perut_cm is not None else None,
             created_at=user.created_at,
         )

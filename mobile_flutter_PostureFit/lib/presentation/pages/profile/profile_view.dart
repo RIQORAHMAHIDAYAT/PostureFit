@@ -141,7 +141,7 @@ class _BmiCard extends GetView<ProfileController> {
                             Text(
                               'BMI',
                               style: AppTextStyles.captionStyle.copyWith(
-                                color: AppColors.textSecondary,
+                                color: AppTheme.textSecondary(context),
                               ),
                             ),
                           ],
@@ -206,7 +206,7 @@ class _BmiLegendRow extends StatelessWidget {
           height: 10,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive ? color : AppColors.divider,
+            color: isActive ? color : AppTheme.dividerColor(context),
           ),
         ),
         const SizedBox(width: 8),
@@ -214,7 +214,7 @@ class _BmiLegendRow extends StatelessWidget {
           child: Text(
             label,
             style: AppTextStyles.bodySmall.copyWith(
-              color: isActive ? color : AppColors.textSecondary,
+              color: isActive ? color : AppTheme.textSecondary(context),
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),

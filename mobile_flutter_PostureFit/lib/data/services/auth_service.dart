@@ -3,6 +3,7 @@
 // Menangani: login, send-otp, verify-otp, resend-otp, get-me.
 // Token JWT disimpan di SharedPreferences.
 
+import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,7 @@ class AuthService {
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'ngrok-skip-browser-warning': '69420',
       };
 
   Future<Map<String, String>> get _authHeaders async {
@@ -26,6 +28,7 @@ class AuthService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
+      'ngrok-skip-browser-warning': '69420',
     };
   }
 
@@ -169,6 +172,66 @@ class AuthService {
   }
 
   // -----------------------------------------------------------------------
+  // POST /api/auth/forgot-password/send-otp
+  // -----------------------------------------------------------------------
+  /// Minta OTP untuk reset password (email harus sudah terdaftar).
+  Future<void> sendForgotPasswordOtp({required String email}) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/auth/forgot-password/send-otp'),
+      headers: _headers,
+      body: jsonEncode({'email': email}),
+    );
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) return;
+
+    throw Exception(body['detail'] ?? 'Gagal mengirim OTP. Periksa email Anda.');
+  }
+
+  // -----------------------------------------------------------------------
+  // POST /api/auth/forgot-password/verify-otp
+  // -----------------------------------------------------------------------
+  /// Verifikasi OTP untuk reset password. Mengembalikan reset_token sementara.
+  Future<void> verifyForgotPasswordOtp({
+    required String email,
+    required String otpCode,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/auth/forgot-password/verify-otp'),
+      headers: _headers,
+      body: jsonEncode({'email': email, 'otp_code': otpCode}),
+    );
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) return;
+
+    throw Exception(body['detail'] ?? 'Kode OTP tidak valid atau sudah kadaluarsa.');
+  }
+
+  // -----------------------------------------------------------------------
+  // POST /api/auth/forgot-password/reset
+  // -----------------------------------------------------------------------
+  /// Reset password setelah OTP terverifikasi.
+  Future<void> resetPassword({
+    required String email,
+    required String newPassword,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/auth/forgot-password/reset'),
+      headers: _headers,
+      body: jsonEncode({'email': email, 'new_password': newPassword}),
+    );
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) return;
+
+    throw Exception(body['detail'] ?? 'Gagal mereset password. Coba lagi.');
+  }
+
+  // -----------------------------------------------------------------------
   // GET /api/auth/me
   // -----------------------------------------------------------------------
   /// Ambil profil user yang sedang login.
@@ -221,6 +284,37 @@ class AuthService {
     }
 
     throw Exception(responseBody['detail'] ?? 'Gagal memperbarui profil. Coba lagi.');
+  }
+
+  // -----------------------------------------------------------------------
+  // POST /api/auth/profile-picture
+  // -----------------------------------------------------------------------
+  Future<Map<String, dynamic>> uploadProfilePicture(File imageFile) async {
+    final headers = await _authHeaders;
+    final uri = Uri.parse('$_baseUrl/api/auth/profile-picture');
+    
+    final request = http.MultipartRequest('POST', uri);
+    
+    // We can't use application/json for multipart, so we keep only the token and ngrok header
+    final multipartHeaders = {
+      if (headers.containsKey('Authorization')) 'Authorization': headers['Authorization']!,
+      if (headers.containsKey('ngrok-skip-browser-warning')) 'ngrok-skip-browser-warning': headers['ngrok-skip-browser-warning']!,
+    };
+    request.headers.addAll(multipartHeaders);
+    
+    final multipartFile = await http.MultipartFile.fromPath('file', imageFile.path);
+    request.files.add(multipartFile);
+    
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+    
+    if (response.statusCode == 200) {
+      return responseBody['data'] as Map<String, dynamic>;
+    }
+    
+    throw Exception(responseBody['detail'] ?? 'Gagal mengunggah foto profil. Coba lagi.');
   }
 
   // -----------------------------------------------------------------------

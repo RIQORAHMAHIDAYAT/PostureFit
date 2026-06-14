@@ -199,6 +199,16 @@ class AppTheme {
         ? _darkBorder
         : AppColors.divider;
   }
+
+  static Gradient primaryAppBarGradient(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF102038), Color(0xFF162D4A)],
+          )
+        : AppColors.primaryAppBarGradient;
+  }
 }
 
 // ── ThemeExtension agar widget bisa akses warna dark secara langsung ──────────

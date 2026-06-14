@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../routes/app_routes.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_input_field.dart';
@@ -99,7 +100,7 @@ class LoginView extends GetView<LoginController> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: GestureDetector(
-                              onTap: () {},
+                              onTap: () => Get.toNamed(AppRoutes.forgotPassword),
                               child: Text(
                                 'Lupa Password?',
                                 style: AppTextStyles.bodySmall.copyWith(

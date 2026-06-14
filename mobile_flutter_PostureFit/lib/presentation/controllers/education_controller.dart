@@ -124,6 +124,7 @@ class EducationController extends GetxController {
         headers: {
           'Content-Type': 'application/json',
           if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+          'ngrok-skip-browser-warning': '69420',
         },
       ).timeout(const Duration(seconds: 15));
 

@@ -14,6 +14,7 @@ class ProfileController extends GetxController {
   final RxDouble height = 0.0.obs;
   final RxDouble weight = 0.0.obs;
   final RxDouble bmi    = 0.0.obs;
+  final RxString profilePicture = ''.obs;
   final RxBool isLoading = true.obs;
 
   final _authService = AuthService();
@@ -37,6 +38,7 @@ class ProfileController extends GetxController {
       bmi.value    = user.bmi ?? 0.0;
       age.value    = user.age ?? 0;
       gender.value = user.gender ?? '';
+      profilePicture.value = user.profilePicture ?? '';
     } catch (e) {
       print('Gagal memuat profil: $e');
     } finally {

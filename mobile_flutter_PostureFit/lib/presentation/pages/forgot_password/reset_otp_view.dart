@@ -1,7 +1,6 @@
-// otp_verification_view.dart — Halaman verifikasi OTP saat register.
+// reset_otp_view.dart — Halaman Verifikasi OTP untuk Reset Password.
 //
-// Desain: 6 kotak input OTP dengan styling premium,
-// countdown resend, animasi loading, pesan error.
+// Langkah 2: Setelah email diinput, user memasukkan 6 digit kode OTP.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,16 +9,18 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../controllers/otp_controller.dart';
+import '../../controllers/forgot_password_controller.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_logo.dart';
 
-class OtpVerificationView extends GetView<OtpController> {
-  const OtpVerificationView({super.key});
+class ResetOtpView extends GetView<ForgotPasswordController> {
+  const ResetOtpView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Ambil email sekali saat build — tidak perlu Obx karena tidak berubah
+    final email = controller.emailController.text;
 
     return Scaffold(
       body: Container(
@@ -44,11 +45,11 @@ class OtpVerificationView extends GetView<OtpController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // ── Back button ──────────────────────────────────────────
+                // ── Back button ─────────────────────────────────────────────
                 Align(
                   alignment: Alignment.centerLeft,
                   child: GestureDetector(
-                    onTap: controller.goBack,
+                    onTap: controller.goBackToForgotPassword,
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -74,11 +75,11 @@ class OtpVerificationView extends GetView<OtpController> {
                 ),
                 const SizedBox(height: AppDimensions.paddingLG),
 
-                // ── Logo ─────────────────────────────────────────────────
+                // ── Logo ────────────────────────────────────────────────────
                 const AppLogo(),
                 const SizedBox(height: AppDimensions.paddingMD),
 
-                // ── Card utama ───────────────────────────────────────────
+                // ── Card utama ──────────────────────────────────────────────
                 Container(
                   padding: const EdgeInsets.all(AppDimensions.paddingXXL),
                   decoration: BoxDecoration(
@@ -102,13 +103,13 @@ class OtpVerificationView extends GetView<OtpController> {
                   ),
                   child: Column(
                     children: [
-                      // ── Icon shield ────────────────────────────────────
+                      // ── Icon email ────────────────────────────────────────
                       Container(
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [AppColors.primary, Color(0xFF2196F3)],
+                            colors: [Color(0xFF4CAF50), Color(0xFF2196F3)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -122,7 +123,7 @@ class OtpVerificationView extends GetView<OtpController> {
                           ],
                         ),
                         child: const Icon(
-                          Icons.shield_rounded,
+                          Icons.mark_email_read_rounded,
                           color: Colors.white,
                           size: 36,
                         ),
@@ -130,7 +131,7 @@ class OtpVerificationView extends GetView<OtpController> {
                       const SizedBox(height: AppDimensions.paddingLG),
 
                       Text(
-                        'Verifikasi Email',
+                        'Kode Verifikasi',
                         style: AppTextStyles.headingMedium.copyWith(
                           color: AppTheme.textPrimary(context),
                           fontWeight: FontWeight.w800,
@@ -139,65 +140,86 @@ class OtpVerificationView extends GetView<OtpController> {
                       ),
                       const SizedBox(height: AppDimensions.paddingSM),
 
+                      // ── Tampilkan email — tidak perlu Obx ─────────────────
                       Text(
-                        'Kode OTP 6 digit telah dikirim ke Email:\n${controller.email}',
+                        'Kode OTP 6 digit telah dikirim ke:',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppTheme.textSecondary(context),
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: AppDimensions.paddingXXL),
 
-                      // ── 6 Kotak OTP ────────────────────────────────────
-                      _OtpInputRow(controller: controller, isDark: isDark),
-                      const SizedBox(height: AppDimensions.paddingMD),
+                      // ── 6 Kotak OTP ───────────────────────────────────────
+                      _ResetOtpInputRow(controller: controller, isDark: isDark),
 
-                      // ── Error message ──────────────────────────────────
+                      // ── Error message — muncul/hilang tanpa geser layout ──
+                      const SizedBox(height: AppDimensions.paddingMD),
                       Obx(() {
-                        if (controller.errorMessage.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.red.shade300),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.error_outline,
-                                  color: Colors.red, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  controller.errorMessage.value,
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: Colors.red.shade700,
+                        final msg = controller.otpErrorMessage.value;
+                        return AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          child: msg.isNotEmpty
+                              ? Container(
+                                  key: const ValueKey('error'),
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border:
+                                        Border.all(color: Colors.red.shade300),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.error_outline,
+                                          color: Colors.red, size: 18),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          msg,
+                                          style:
+                                              AppTextStyles.bodySmall.copyWith(
+                                            color: Colors.red.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : const SizedBox(key: ValueKey('empty')),
                         );
                       }),
+
                       const SizedBox(height: AppDimensions.paddingXXL),
 
-                      // ── Tombol Verifikasi ──────────────────────────────
+                      // ── Tombol Verifikasi ─────────────────────────────────
                       Obx(() => AppButton(
-                            label: 'VERIFIKASI',
-                            onTap: controller.verifyOtp,
-                            isLoading: controller.isLoading.value,
+                            label: 'VERIFIKASI OTP',
+                            onTap: controller.verifyResetOtp,
+                            isLoading: controller.isOtpLoading.value,
                           )),
                       const SizedBox(height: AppDimensions.paddingXL),
 
-                      // ── Resend OTP ─────────────────────────────────────
+                      // ── Resend OTP ────────────────────────────────────────
                       Obx(() {
                         final sec = controller.secondsLeft.value;
                         final canResend = sec == 0;
+                        final isResending = controller.isResending.value;
                         return Column(
                           children: [
                             Text(
@@ -208,11 +230,14 @@ class OtpVerificationView extends GetView<OtpController> {
                             ),
                             const SizedBox(height: 6),
                             GestureDetector(
-                              onTap: canResend ? controller.resendOtp : null,
-                              child: controller.isResending.value
+                              onTap:
+                                  canResend && !isResending
+                                      ? controller.resendResetOtp
+                                      : null,
+                              child: isResending
                                   ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
+                                      width: 20,
+                                      height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
                                         color: AppColors.primary,
@@ -221,7 +246,7 @@ class OtpVerificationView extends GetView<OtpController> {
                                   : Text(
                                       canResend
                                           ? 'Kirim Ulang OTP'
-                                          : 'Kirim ulang dalam $sec detik',
+                                          : 'Kirim ulang dalam ${sec}s',
                                       style: AppTextStyles.bodySmall.copyWith(
                                         color: canResend
                                             ? AppColors.primary
@@ -232,6 +257,7 @@ class OtpVerificationView extends GetView<OtpController> {
                                         decoration: canResend
                                             ? TextDecoration.underline
                                             : TextDecoration.none,
+                                        decorationColor: AppColors.primary,
                                       ),
                                     ),
                             ),
@@ -260,20 +286,21 @@ class OtpVerificationView extends GetView<OtpController> {
 }
 
 // ---------------------------------------------------------------------------
-// Widget: Baris 6 kotak input OTP
+// Widget: Baris 6 kotak input OTP — Responsive terhadap lebar layar
 // ---------------------------------------------------------------------------
-class _OtpInputRow extends StatelessWidget {
-  final OtpController controller;
+class _ResetOtpInputRow extends StatelessWidget {
+  final ForgotPasswordController controller;
   final bool isDark;
 
-  const _OtpInputRow({required this.controller, required this.isDark});
+  const _ResetOtpInputRow({required this.controller, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
-    // LayoutBuilder mendapat lebar PERSIS dari parent → tidak ada akumulasi rounding error
+    // LayoutBuilder mendapat lebar PERSIS dari parent (sudah dikurangi padding card)
+    // lebih andal daripada MediaQuery karena tidak perlu hitung offset manual
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Total gap: 6 kotak × padding kiri-kanan (4+4) = 48px
+        // Total gap horizontal: 6 kotak × padding kiri-kanan (4+4) = 48px
         final boxSize = ((constraints.maxWidth - 48) / 6).clamp(32.0, 48.0);
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -302,13 +329,13 @@ class _OtpInputRow extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Widget: Satu kotak digit OTP — FocusNode KeyboardListener stabil
+// Widget: Satu kotak digit OTP — ukuran responsif, FocusNode stabil
 // ---------------------------------------------------------------------------
 class _OtpDigitBox extends StatefulWidget {
   final TextEditingController textController;
   final FocusNode focusNode;
   final bool isDark;
-  final double boxSize; // diterima dari parent (dihitung oleh LayoutBuilder)
+  final double boxSize;
   final ValueChanged<String> onChanged;
   final VoidCallback onBackspace;
 
@@ -326,7 +353,7 @@ class _OtpDigitBox extends StatefulWidget {
 }
 
 class _OtpDigitBoxState extends State<_OtpDigitBox> {
-  // FocusNode ini harus stabil selama lifetime widget, tidak boleh dibuat di build()
+  // FocusNode untuk KeyboardListener harus stabil selama lifetime widget
   final _keyListenerFocusNode = FocusNode();
 
   @override
@@ -337,12 +364,9 @@ class _OtpDigitBoxState extends State<_OtpDigitBox> {
 
   @override
   Widget build(BuildContext context) {
-    // boxSize sudah dihitung oleh LayoutBuilder di parent — tidak perlu MediaQuery
-    final boxSize = widget.boxSize;
-
     return SizedBox(
-      width: boxSize,
-      height: boxSize + 10,
+      width: widget.boxSize,
+      height: widget.boxSize + 10,
       child: KeyboardListener(
         focusNode: _keyListenerFocusNode,
         onKeyEvent: (event) {
@@ -359,7 +383,7 @@ class _OtpDigitBoxState extends State<_OtpDigitBox> {
           maxLength: 1,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: TextStyle(
-            fontSize: boxSize * 0.45,
+            fontSize: widget.boxSize * 0.45,
             fontWeight: FontWeight.w800,
             color: AppTheme.textPrimary(context),
             letterSpacing: 0,
@@ -374,13 +398,15 @@ class _OtpDigitBoxState extends State<_OtpDigitBox> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.isDark ? Colors.white30 : Colors.grey.shade300,
+                color:
+                    widget.isDark ? Colors.white30 : Colors.grey.shade300,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.isDark ? Colors.white24 : Colors.grey.shade300,
+                color:
+                    widget.isDark ? Colors.white24 : Colors.grey.shade300,
               ),
             ),
             focusedBorder: OutlineInputBorder(
