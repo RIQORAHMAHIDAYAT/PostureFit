@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../../data/services/auth_service.dart';
+import '../../../../data/services/activity_log_service.dart';
 import '../../../../data/models/user_model.dart';
 
 /// Controller untuk halaman Edit Profile.
@@ -17,6 +18,7 @@ class EditProfileController extends GetxController {
 
   // ── Services ─────────────────────────────────────────────────────────────────────
   final _authService = AuthService();
+  final _activityLogService = ActivityLogService();
 
   // ── Text Controllers ────────────────────────────────────────────────────────
   late final TextEditingController nameCtrl;
@@ -107,6 +109,19 @@ class EditProfileController extends GetxController {
       final n = nameCtrl.text.trim();
       final g = selectedGender.value.isNotEmpty ? selectedGender.value : null;
 
+      // Hitung perubahan untuk dicatat di log aktivitas
+      final List<String> changesList = [];
+      if (n != _profileCtrl.name.value) changesList.add('Nama');
+      if (a != _profileCtrl.age.value) changesList.add('Usia');
+      if (h != _profileCtrl.height.value) changesList.add('Tinggi Badan');
+      if (w != _profileCtrl.weight.value) changesList.add('Berat Badan');
+      if (g != _profileCtrl.gender.value) changesList.add('Jenis Kelamin');
+      if (pickedImageFile.value != null) changesList.add('Foto Profil');
+
+      final changesStr = changesList.isNotEmpty
+          ? 'Mengubah data: ${changesList.join(", ")}'
+          : 'Memperbarui profil tanpa perubahan data.';
+
       // Upload image if selected
       if (pickedImageFile.value != null) {
         final imgData = await _authService.uploadProfilePicture(pickedImageFile.value!);
@@ -121,6 +136,14 @@ class EditProfileController extends GetxController {
         height: h,
         weight: w,
         gender: g,
+      );
+
+      // Catat aktivitas perubahan profil
+      await _activityLogService.saveLog(
+        icon: 'edit',
+        title: 'Pembaruan Profil',
+        desc: changesStr,
+        email: _profileCtrl.email.value,
       );
 
       // Update ProfileController dengan data fresh dari server

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../routes/app_routes.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/activity_log_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginController extends GetxController {
@@ -12,6 +13,7 @@ class LoginController extends GetxController {
   final RxBool isLoading = false.obs;
 
   final _authService = AuthService();
+  final _activityLogService = ActivityLogService();
 
   // -------------------------------------------------------------------------
   // Login dengan email & password ke backend
@@ -24,6 +26,14 @@ class LoginController extends GetxController {
       await _authService.login(
         email:    emailController.text.trim(),
         password: passwordController.text,
+      );
+
+      // Catat aktivitas login berhasil
+      await _activityLogService.saveLog(
+        icon: 'login',
+        title: 'Login Akun',
+        desc: 'Berhasil masuk ke aplikasi.',
+        email: emailController.text.trim(),
       );
 
       // Navigasi ke halaman utama setelah login berhasil
@@ -72,6 +82,14 @@ class LoginController extends GetxController {
       await _authService.loginWithGoogle(
         email: email,
         name: name,
+      );
+
+      // Catat aktivitas login Google berhasil
+      await _activityLogService.saveLog(
+        icon: 'login',
+        title: 'Login Akun (Google)',
+        desc: 'Berhasil masuk menggunakan akun Google.',
+        email: email,
       );
 
       // Navigasi ke home

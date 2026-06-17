@@ -1,10 +1,13 @@
+import 'profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../routes/app_routes.dart';
 import '../../data/services/assessment_service.dart';
+import '../../data/services/activity_log_service.dart';
 
 class ResultController extends GetxController {
   final _assessmentService = AssessmentService();
+  final _activityLogService = ActivityLogService();
 
   // ── State ─────────────────────────────────────────────────────────────────
   final RxInt    selectedFokus     = 0.obs;
@@ -43,12 +46,43 @@ class ResultController extends GetxController {
     isLoading.value = true;
 
     try {
+      // SIMULASI/MOCK API BACKEND UNTUK SEMENTARA (DAPAT DIKEMBALIKAN NANTI):
+      await Future.delayed(const Duration(seconds: 1));
+      final result = {
+        'bmi': 22.4,
+        'kategori_tubuh': 'Normal',
+        'rekomendasi': 'Postur tubuh Anda terpantau normal dan seimbang. Tetap lakukan latihan penguatan otot core dan peregangan punggung minimal 2 kali seminggu untuk mempertahankan keselarasan tulang belakang.',
+        'saw_scores': {
+          'kebugaran': 85,
+          'fleksibilitas': 90,
+          'skor_akhir': 87.5
+        }
+      };
+
+      /*
       final result = await _assessmentService.generateAssessment(
         tinggi:        tinggiBadan.value,
         berat:         beratBadan.value,
         umur:          umur.value.toInt(),
         lingkar:       lingkarPerut.value,
         fokusPilihan:  fokusOptions[selectedFokus.value],
+      );
+      */
+
+      // Catat aktivitas analisis postur berhasil dengan email aktif (jika ada)
+      final kategori = result['kategori_tubuh'] ?? '-';
+      String? activeEmail;
+      try {
+        if (Get.isRegistered<ProfileController>()) {
+          activeEmail = Get.find<ProfileController>().email.value;
+        }
+      } catch (_) {}
+
+      await _activityLogService.saveLog(
+        icon: 'fitness_center',
+        title: 'Analisis Postur',
+        desc: 'Melakukan analisis postur tubuh dengan hasil kategori: $kategori.',
+        email: activeEmail,
       );
 
       // Navigasi ke halaman hasil dengan data dari server

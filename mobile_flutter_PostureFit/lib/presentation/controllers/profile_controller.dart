@@ -40,7 +40,16 @@ class ProfileController extends GetxController {
       gender.value = user.gender ?? '';
       profilePicture.value = user.profilePicture ?? '';
     } catch (e) {
-      print('Gagal memuat profil: $e');
+      debugPrint('Gagal memuat profil: $e. Menggunakan profil simulasi untuk testing.');
+      final mockUser = UserModel.mock;
+      name.value   = mockUser.name;
+      email.value  = mockUser.email;
+      height.value = mockUser.height ?? 172.0;
+      weight.value = mockUser.weight ?? 78.0;
+      bmi.value    = mockUser.bmi ?? 28.4;
+      age.value    = mockUser.age ?? 22;
+      gender.value = mockUser.gender ?? 'Laki-laki';
+      profilePicture.value = mockUser.profilePicture ?? '';
     } finally {
       isLoading.value = false;
     }

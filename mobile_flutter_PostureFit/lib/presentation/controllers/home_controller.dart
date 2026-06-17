@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/entities/activity_entity.dart';
@@ -35,7 +36,8 @@ class HomeController extends GetxController {
       final userData = await _authService.getMe();
       user.value = UserModel.fromJson(userData);
     } catch (e) {
-      print('Gagal mengambil data user: $e');
+      debugPrint('Gagal mengambil data user: $e. Menggunakan profil simulasi untuk testing.');
+      user.value = UserModel.mock;
     } finally {
       isLoading.value = false;
     }

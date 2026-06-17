@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../routes/app_routes.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/activity_log_service.dart';
 
 class ForgotPasswordController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ class ForgotPasswordController extends GetxController {
   final RxInt passwordStrength = 0.obs;
 
   final _authService = AuthService();
+  final _activityLogService = ActivityLogService();
 
   // ─────────────────────────────────────────────────────────────────────────
   // Lifecycle
@@ -210,6 +212,14 @@ class ForgotPasswordController extends GetxController {
       await _authService.resetPassword(
         email: emailController.text.trim(),
         newPassword: newPasswordController.text,
+      );
+
+      // Catat aktivitas ganti password berhasil
+      await _activityLogService.saveLog(
+        icon: 'lock',
+        title: 'Reset Kata Sandi',
+        desc: 'Kata sandi Anda telah berhasil diperbarui.',
+        email: emailController.text.trim(),
       );
 
       // ⚠️ Setel loading = false SEBELUM navigasi agar tidak menyentuh
