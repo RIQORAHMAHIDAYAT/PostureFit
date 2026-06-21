@@ -59,6 +59,7 @@ class ActivityLogController extends GetxController {
         });
       }
 
+<<<<<<< HEAD
       // Tampilkan data seed/mock agar riwayat tidak terlihat hilang sendiri,
       // dan tetap ada selama user belum pernah melakukan 'Clear All' secara manual.
       if (!hasCleared) {
@@ -66,6 +67,14 @@ class ActivityLogController extends GetxController {
         // Hanya tambahkan jika log dengan judul yang sama belum ada untuk menghindari duplikasi
         // jika kita nanti memutuskan untuk menyimpannya ke SharedPreferences.
         final mockLogs = [
+=======
+      // JIKA MASIH KOSONG (misal baru pasang app, token expired, offline)
+      // Tampilkan data mock agar halaman tidak kosong saat testing lokal,
+      // tetapi HANYA jika pengguna belum pernah menghapus log secara sengaja.
+      if (combined.isEmpty && !hasCleared) {
+        final now = DateTime.now();
+        combined.addAll([
+>>>>>>> 743fec2d02ac0b1482e652dbbccf96be981de46f
           {
             'icon': 'login',
             'title': 'Registrasi Akun',
@@ -90,6 +99,7 @@ class ActivityLogController extends GetxController {
             'desc': 'Melakukan analisis postur tubuh dengan hasil kategori: Normal.',
             'time': now.subtract(const Duration(hours: 4)).toIso8601String(),
           },
+<<<<<<< HEAD
         ];
 
         for (var mock in mockLogs) {
@@ -97,6 +107,9 @@ class ActivityLogController extends GetxController {
             combined.add(mock);
           }
         }
+=======
+        ]);
+>>>>>>> 743fec2d02ac0b1482e652dbbccf96be981de46f
       }
 
       // 4. Urutkan berdasarkan waktu descending (terbaru di paling atas)
