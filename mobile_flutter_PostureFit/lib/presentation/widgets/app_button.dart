@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/theme/app_theme.dart';
 
 enum AppButtonVariant { primary, outline, ghost }
 
@@ -156,11 +157,11 @@ class _OutlineButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: isLoading ? null : onTap,
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: AppColors.inputBorder, width: 1.5),
+        side: BorderSide(color: AppTheme.borderColor(context), width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
         ),
-        backgroundColor: AppColors.cardBackground,
+        backgroundColor: AppTheme.cardColor(context),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +173,7 @@ class _OutlineButton extends StatelessWidget {
           Text(
             label,
             style: AppTextStyles.headingSmall.copyWith(
-              color: AppColors.textPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
         ],

@@ -23,4 +23,5 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String resetOtpVerification = '/reset-otp-verification';
   static const String newPassword = '/new-password';
+  static const String privacyPolicy = '/privacy-policy';
 }

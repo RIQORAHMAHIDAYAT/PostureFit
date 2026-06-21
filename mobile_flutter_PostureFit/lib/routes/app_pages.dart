@@ -40,6 +40,7 @@ import '../bindings/forgot_password_binding.dart';
 import '../presentation/pages/forgot_password/forgot_password_view.dart';
 import '../presentation/pages/forgot_password/reset_otp_view.dart';
 import '../presentation/pages/forgot_password/new_password_view.dart';
+import '../presentation/pages/privacy_policy/privacy_policy_view.dart';
 import 'app_routes.dart';
 
 
@@ -69,5 +70,6 @@ class AppPages {
     GetPage(name: AppRoutes.forgotPassword, page: () => const ForgotPasswordView(), binding: ForgotPasswordBinding(), transition: Transition.downToUp),
     GetPage(name: AppRoutes.resetOtpVerification, page: () => const ResetOtpView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.newPassword, page: () => const NewPasswordView(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.privacyPolicy, page: () => const PrivacyPolicyView(), transition: Transition.cupertino),
   ];
 }

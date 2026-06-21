@@ -9,6 +9,7 @@ class UserEntity {
   final int? age;
   final String? gender;
   final String? profilePicture;
+  final DateTime? createdAt;
 
   const UserEntity({
     required this.id,
@@ -21,5 +22,6 @@ class UserEntity {
     this.age,
     this.gender,
     this.profilePicture,
+    this.createdAt,
   });
 }

@@ -30,7 +30,7 @@ class ProfileController extends GetxController {
     try {
       final data = await _authService.getMe();
       final user = UserModel.fromJson(data);
-      
+
       name.value   = user.name;
       email.value  = user.email;
       height.value = user.height ?? 0.0;
@@ -39,8 +39,25 @@ class ProfileController extends GetxController {
       age.value    = user.age ?? 0;
       gender.value = user.gender ?? '';
       profilePicture.value = user.profilePicture ?? '';
+
+      // Simpan ke cache lokal agar bisa ditampilkan saat offline
+      await _authService.cacheUserData(user);
     } catch (e) {
-      print('Gagal memuat profil: $e');
+      debugPrint('[ProfileController] getMe() gagal: $e — mencoba data cache lokal.');
+      // Gunakan data yang sudah tersimpan di SharedPreferences (bukan dummy)
+      final cached = await _authService.getCachedUser();
+      if (cached != null) {
+        name.value   = cached.name;
+        email.value  = cached.email;
+        height.value = cached.height ?? 0.0;
+        weight.value = cached.weight ?? 0.0;
+        bmi.value    = cached.bmi ?? 0.0;
+        age.value    = cached.age ?? 0;
+        gender.value = cached.gender ?? '';
+        profilePicture.value = cached.profilePicture ?? '';
+      }
+      // Jika tidak ada cache sama sekali (misal baru install), biarkan kosong —
+      // user akan tetap pada akun mereka karena token masih ada.
     } finally {
       isLoading.value = false;
     }
@@ -103,7 +120,7 @@ class ProfileController extends GetxController {
   }
 
   void onPrivacyPolicy() {
-    // TODO: Navigate to privacy-policy page.
+    Get.toNamed(AppRoutes.privacyPolicy);
   }
 
   void onLogout() {

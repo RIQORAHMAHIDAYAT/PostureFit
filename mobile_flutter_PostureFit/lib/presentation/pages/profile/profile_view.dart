@@ -205,8 +205,7 @@ class _BmiLegendRow extends StatelessWidget {
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive ? color : AppTheme.dividerColor(context),
+            color: isActive ? color : AppTheme.borderColor(context),
           ),
         ),
         const SizedBox(width: 8),

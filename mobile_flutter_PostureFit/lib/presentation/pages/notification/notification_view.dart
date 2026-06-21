@@ -257,15 +257,20 @@ class _NotificationItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    item.time,
-                    style: AppTextStyles.captionStyle.copyWith(
-                      color: item.isRead
-                          ? AppTheme.textSecondary(context)
-                          : color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Obx(() {
+                    // Baca tickValue agar widget Text ini di-rebuild setiap 30 detik
+                    // ignore: unused_local_variable
+                    final _ = Get.find<NotificationController>().tickValue;
+                    return Text(
+                      item.timeLabel,
+                      style: AppTextStyles.captionStyle.copyWith(
+                        color: item.isRead
+                            ? AppTheme.textSecondary(context)
+                            : color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),

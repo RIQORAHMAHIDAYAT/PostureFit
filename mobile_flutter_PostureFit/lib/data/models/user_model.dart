@@ -12,6 +12,7 @@ class UserModel extends UserEntity {
     super.age,
     super.gender,
     super.profilePicture,
+    super.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +27,7 @@ class UserModel extends UserEntity {
       age: json['age'] != null ? (json['age'] as num).toInt() : null,
       gender: json['gender'] as String?,
       profilePicture: json['profile_picture'] as String?,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
     );
   }
 
@@ -41,6 +43,7 @@ class UserModel extends UserEntity {
       'age': age,
       'gender': gender,
       'profile_picture': profilePicture,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 

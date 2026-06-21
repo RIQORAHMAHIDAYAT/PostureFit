@@ -82,9 +82,7 @@ class OtpVerificationView extends GetView<OtpController> {
                 Container(
                   padding: const EdgeInsets.all(AppDimensions.paddingXXL),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.07)
-                        : Colors.white.withValues(alpha: 0.92),
+                    color: AppTheme.cardColor(context),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
@@ -94,9 +92,7 @@ class OtpVerificationView extends GetView<OtpController> {
                       ),
                     ],
                     border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.white,
+                      color: AppTheme.borderColor(context),
                       width: 1,
                     ),
                   ),
@@ -367,20 +363,18 @@ class _OtpDigitBoxState extends State<_OtpDigitBox> {
           decoration: InputDecoration(
             counterText: '',
             filled: true,
-            fillColor: widget.isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.grey.shade50,
+            fillColor: AppTheme.inputBg(context),
             contentPadding: EdgeInsets.zero,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.isDark ? Colors.white30 : Colors.grey.shade300,
+                color: AppTheme.borderColor(context),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: widget.isDark ? Colors.white24 : Colors.grey.shade300,
+                color: AppTheme.borderColor(context),
               ),
             ),
             focusedBorder: OutlineInputBorder(

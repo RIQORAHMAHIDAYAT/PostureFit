@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/theme/app_theme.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onTap;
@@ -14,9 +15,9 @@ class GoogleSignInButton extends StatelessWidget {
       child: Container(
         height: AppDimensions.buttonHeight,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.inputBg(context),
           borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppTheme.borderColor(context)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -30,7 +31,7 @@ class GoogleSignInButton extends StatelessWidget {
             Text(
               'Google',
               style: AppTextStyles.headingSmall.copyWith(
-                color: Colors.black87,
+                color: AppTheme.textPrimary(context),
                 fontWeight: FontWeight.w500,
               ),
             ),

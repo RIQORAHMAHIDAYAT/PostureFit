@@ -1,10 +1,13 @@
+import 'profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../routes/app_routes.dart';
 import '../../data/services/assessment_service.dart';
+import '../../data/services/activity_log_service.dart';
 
 class ResultController extends GetxController {
   final _assessmentService = AssessmentService();
+  final _activityLogService = ActivityLogService();
 
   // ── State ─────────────────────────────────────────────────────────────────
   final RxInt    selectedFokus     = 0.obs;
@@ -49,6 +52,22 @@ class ResultController extends GetxController {
         umur:          umur.value.toInt(),
         lingkar:       lingkarPerut.value,
         fokusPilihan:  fokusOptions[selectedFokus.value],
+      );
+
+      // Catat aktivitas analisis postur berhasil dengan email aktif (jika ada)
+      final kategori = result['kategori_tubuh'] ?? '-';
+      String? activeEmail;
+      try {
+        if (Get.isRegistered<ProfileController>()) {
+          activeEmail = Get.find<ProfileController>().email.value;
+        }
+      } catch (_) {}
+
+      await _activityLogService.saveLog(
+        icon: 'fitness_center',
+        title: 'Analisis Postur',
+        desc: 'Melakukan analisis postur tubuh dengan hasil kategori: $kategori.',
+        email: activeEmail,
       );
 
       // Navigasi ke halaman hasil dengan data dari server

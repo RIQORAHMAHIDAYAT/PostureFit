@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../routes/app_routes.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/activity_log_service.dart';
 
 class OtpController extends GetxController {
   // -------------------------------------------------------------------------
@@ -30,8 +31,9 @@ class OtpController extends GetxController {
   late String name;
 
   final _authService = AuthService();
+  final _activityLogService = ActivityLogService();
   Timer? _timer;
-
+  
   // -------------------------------------------------------------------------
   // Lifecycle
   // -------------------------------------------------------------------------
@@ -92,6 +94,14 @@ class OtpController extends GetxController {
     isLoading.value = true;
     try {
       await _authService.verifyOtp(email: email, otpCode: _otpCode);
+
+      // Catat aktivitas registrasi berhasil
+      await _activityLogService.saveLog(
+        icon: 'login',
+        title: 'Registrasi Akun',
+        desc: 'Akun PostureFit Anda telah berhasil dibuat.',
+        email: email,
+      );
 
       // OTP valid → akun dibuat → langsung masuk ke halaman utama
       Get.offAllNamed(AppRoutes.main);

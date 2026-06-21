@@ -346,34 +346,55 @@ class EducationOut(BaseModel):
 class NotificationOut(BaseModel):
     """
     Fields match Flutter NotificationItem:
-        id, title, message, time, type, isRead
+        id, title, message, time, type, isRead, createdAt
     """
-    id:      str
-    title:   str
-    message: str
-    time:    Optional[str]  = None   # formatted relative time
-    type:    Optional[str]  = "system"
-    is_read: bool           = False   # → frontend: isRead
+    id:         str
+    title:      str
+    message:    str
+    time:       Optional[str]  = None   # formatted relative time (compat lama)
+    created_at: Optional[str]  = None   # ISO 8601 UTC — untuk hitung ulang di Flutter
+    type:       Optional[str]  = "system"
+    is_read:    bool           = False   # → frontend: isRead
 
     @classmethod
     def from_db(cls, notif) -> "NotificationOut":
-        # Simple relative time
-        now = datetime.utcnow()
-        diff = now - notif.created_at.replace(tzinfo=None) if notif.created_at else None
-        if diff is None:
+        from datetime import timezone, timedelta
+        wib = timezone(timedelta(hours=7))
+        now = datetime.now(wib)
+
+        created_at_iso: Optional[str] = None
+        if notif.created_at is None:
             time_str = ""
-        elif diff.days >= 1:
-            time_str = f"{diff.days} hari lalu" if diff.days > 1 else "Kemarin"
-        elif diff.seconds >= 3600:
-            time_str = f"{diff.seconds // 3600} jam lalu"
         else:
-            time_str = f"{max(1, diff.seconds // 60)} menit lalu"
+            # notif.created_at dari MySQL tersimpan di waktu lokal (WIB) tanpa tzinfo
+            # Jadikan dia aware terhadap WIB
+            created_wib = notif.created_at.replace(tzinfo=wib)
+            
+            diff = now - created_wib
+            total_seconds = int(diff.total_seconds())
+            
+            if total_seconds < 60:
+                time_str = "Baru saja"
+            elif total_seconds < 3600:
+                menit = total_seconds // 60
+                time_str = f"{menit} menit lalu"
+            elif total_seconds < 86400:
+                jam = total_seconds // 3600
+                time_str = f"{jam} jam lalu"
+            elif diff.days == 1:
+                time_str = "Kemarin"
+            else:
+                time_str = f"{diff.days} hari lalu"
+
+            # Kirim timestamp UTC sebenarnya ke Flutter (konversi WIB -> UTC)
+            created_at_iso = created_wib.astimezone(timezone.utc).isoformat()
 
         return cls(
             id=notif.id,
             title=notif.title,
             message=notif.message,
             time=time_str,
+            created_at=created_at_iso,
             type=notif.type,
             is_read=notif.is_read,
         )

@@ -338,9 +338,75 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
+  /// Simpan data profil user ke cache lokal (SharedPreferences).
+  /// Dipanggil setiap kali getMe() berhasil agar selalu up-to-date.
+  Future<void> cacheUserData(dynamic user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.keyUserName,   user.name ?? '');
+    await prefs.setString(AppConstants.keyUserEmail,  user.email ?? '');
+    await prefs.setString('cached_user_gender',       user.gender ?? '');
+    await prefs.setString('cached_user_goal',         user.goal ?? '');
+    await prefs.setString('cached_user_picture',      user.profilePicture ?? '');
+    if (user.age != null)    prefs.setInt('cached_user_age',       user.age!);
+    if (user.height != null) prefs.setDouble('cached_user_height', user.height!);
+    if (user.weight != null) prefs.setDouble('cached_user_weight', user.weight!);
+    if (user.bmi != null)    prefs.setDouble('cached_user_bmi',    user.bmi!);
+  }
+
+  /// Baca profil user dari cache lokal.
+  /// Digunakan sebagai fallback ketika tidak ada koneksi ke backend.
+  Future<dynamic> getCachedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedName  = prefs.getString(AppConstants.keyUserName);
+    final cachedEmail = prefs.getString(AppConstants.keyUserEmail);
+    // Jika nama & email belum pernah di-cache, berarti user belum pernah
+    // berhasil login dan tidak ada data yang bisa ditampilkan.
+    if (cachedName == null || cachedEmail == null || cachedName.isEmpty) return null;
+
+    // Import UserModel agar bisa dibuat instance-nya
+    // ignore: avoid_dynamic_calls
+    return _CachedUser(
+      name:           cachedName,
+      email:          cachedEmail,
+      gender:         prefs.getString('cached_user_gender'),
+      goal:           prefs.getString('cached_user_goal'),
+      profilePicture: prefs.getString('cached_user_picture'),
+      age:            prefs.getInt('cached_user_age'),
+      height:         prefs.getDouble('cached_user_height'),
+      weight:         prefs.getDouble('cached_user_weight'),
+      bmi:            prefs.getDouble('cached_user_bmi'),
+    );
+  }
+
   /// Ambil token yang tersimpan.
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(AppConstants.keyToken);
   }
+}
+
+/// Kelas sederhana untuk membawa data user dari cache SharedPreferences.
+/// Tidak perlu hiting database — hanya container data.
+class _CachedUser {
+  final String name;
+  final String email;
+  final String? gender;
+  final String? goal;
+  final String? profilePicture;
+  final int? age;
+  final double? height;
+  final double? weight;
+  final double? bmi;
+
+  const _CachedUser({
+    required this.name,
+    required this.email,
+    this.gender,
+    this.goal,
+    this.profilePicture,
+    this.age,
+    this.height,
+    this.weight,
+    this.bmi,
+  });
 }

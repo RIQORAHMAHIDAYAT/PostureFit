@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/theme/app_theme.dart';
 
 class ActivityProgressBar extends StatelessWidget {
   final String label;
@@ -27,7 +27,7 @@ class ActivityProgressBar extends StatelessWidget {
             Text('$value%',
                 style: AppTextStyles.bodySmall.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: AppTheme.textPrimary(context),
                 )),
           ],
         ),
@@ -36,7 +36,7 @@ class ActivityProgressBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimensions.radiusCircle),
           child: LinearProgressIndicator(
             value: value / 100,
-            backgroundColor: AppColors.inputBackground,
+            backgroundColor: AppTheme.inputBg(context),
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: 6,
           ),

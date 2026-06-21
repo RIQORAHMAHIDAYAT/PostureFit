@@ -138,6 +138,7 @@ class EducationArticleAdmin(ModelView, model=EducationArticle):
 
 
 class NotificationAdmin(ModelView, model=Notification):
+    # ── Tabel daftar notifikasi ──────────────────────────────────────────────
     column_list = [
         Notification.id,
         Notification.user_id,
@@ -149,9 +150,59 @@ class NotificationAdmin(ModelView, model=Notification):
     column_searchable_list = [Notification.title, Notification.type]
     column_sortable_list   = [Notification.created_at]
     column_default_sort    = ("created_at", True)
+
+    # ── Form buat notifikasi — tanpa field user (broadcast otomatis) ─────────
+    # Sembunyikan semua kolom yang tidak perlu diisi admin
+    form_excluded_columns  = ["user_id", "created_at", "user"]
+    form_include_pk        = False   # Jangan tampilkan kolom ID
+
     name        = "Notifikasi"
     name_plural = "Notifikasi"
     icon        = "fa-solid fa-bell"
+
+    # ── Override insert — kirim ke SEMUA user otomatis ───────────────────────
+    async def insert_model(self, request, data: dict):
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            all_user_ids = [row[0] for row in db.query(User.id).all()]
+            title      = data.get("title", "Notifikasi")
+            message    = data.get("message", "")
+            notif_type = data.get("type", "system")
+            is_read    = False   # selalu unread saat baru dibuat
+
+            last_notif = None
+            if all_user_ids:
+                for uid in all_user_ids:
+                    n = Notification(
+                        user_id=uid,
+                        title=title,
+                        message=message,
+                        type=notif_type,
+                        is_read=is_read,
+                    )
+                    db.add(n)
+                    last_notif = n
+            else:
+                # Tidak ada user terdaftar — buat 1 entri sistem sebagai placeholder
+                last_notif = Notification(
+                    user_id="SYSTEM",
+                    title=title,
+                    message=message,
+                    type=notif_type,
+                    is_read=is_read,
+                )
+                db.add(last_notif)
+
+            db.commit()
+            db.refresh(last_notif)
+            db.expunge(last_notif)
+            return last_notif
+        except Exception as e:
+            db.rollback()
+            raise e
+        finally:
+            db.close()
 
 
 class AdminUserAdmin(ModelView, model=AdminUser):
@@ -259,3 +310,44 @@ async def admin_sync_education():
             "status": "error",
             "message": f"Sinkronisasi gagal: {str(e)}",
         }
+
+
+@admin_api_router.post("/broadcast-notification")
+def admin_broadcast_notification(
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """
+    Kirim notifikasi broadcast ke SEMUA user yang terdaftar.
+    Dipanggil dari Admin Dashboard tanpa perlu token user biasa.
+    Body: { "title": "...", "message": "...", "type": "system|education|posture|workout" }
+    """
+    title      = payload.get("title", "").strip()
+    message    = payload.get("message", "").strip()
+    notif_type = payload.get("type", "system")
+
+    if not title or not message:
+        return {"status": "error", "message": "title dan message tidak boleh kosong."}
+
+    all_user_ids = [row[0] for row in db.query(User.id).all()]
+    if not all_user_ids:
+        return {"status": "error", "message": "Tidak ada user terdaftar."}
+
+    try:
+        for uid in all_user_ids:
+            db.add(Notification(
+                user_id=uid,
+                title=title,
+                message=message,
+                type=notif_type,
+                is_read=False,
+            ))
+        db.commit()
+        return {
+            "status": "success",
+            "message": f"Notifikasi berhasil dikirim ke {len(all_user_ids)} user.",
+            "recipients": len(all_user_ids),
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
