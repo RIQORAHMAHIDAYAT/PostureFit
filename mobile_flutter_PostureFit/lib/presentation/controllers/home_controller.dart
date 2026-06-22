@@ -35,9 +35,25 @@ class HomeController extends GetxController {
     try {
       final userData = await _authService.getMe();
       user.value = UserModel.fromJson(userData);
+      // Simpan data fresh ke cache
+      await _authService.cacheUserData(user.value);
     } catch (e) {
-      debugPrint('Gagal mengambil data user: $e. Menggunakan profil simulasi untuk testing.');
-      user.value = UserModel.mock;
+      debugPrint('Gagal mengambil data user: $e. Menggunakan profil dari cache.');
+      final cached = await _authService.getCachedUser();
+      if (cached != null) {
+        user.value = UserModel(
+          id: '',
+          name: cached.name,
+          email: cached.email,
+          gender: cached.gender,
+          age: cached.age,
+          height: cached.height,
+          weight: cached.weight,
+          bmi: cached.bmi,
+          goal: cached.goal,
+          profilePicture: cached.profilePicture,
+        );
+      }
     } finally {
       isLoading.value = false;
     }

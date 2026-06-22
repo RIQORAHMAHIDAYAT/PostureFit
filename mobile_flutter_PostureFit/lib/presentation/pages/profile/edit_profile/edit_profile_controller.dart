@@ -6,6 +6,7 @@ import '../../../controllers/profile_controller.dart';
 import '../../../../data/services/auth_service.dart';
 import '../../../../data/services/activity_log_service.dart';
 import '../../../../data/models/user_model.dart';
+import '../../../controllers/home_controller.dart';
 
 /// Controller untuk halaman Edit Profile.
 /// Mengelola form input, pemilihan foto, dan menyimpan perubahan ke [ProfileController].
@@ -158,6 +159,13 @@ class EditProfileController extends GetxController {
       if (updatedUser.profilePicture != null) {
         _profileCtrl.profilePicture.value = updatedUser.profilePicture!;
       }
+
+      // Sync ke HomeController agar tampilan di beranda langsung berubah
+      try {
+        if (Get.isRegistered<HomeController>()) {
+          Get.find<HomeController>().user.value = updatedUser;
+        }
+      } catch (_) {}
 
       Get.back();
       Get.snackbar(

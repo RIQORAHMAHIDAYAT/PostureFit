@@ -43,7 +43,6 @@ class ProfileController extends GetxController {
       // Simpan ke cache lokal agar bisa ditampilkan saat offline
       await _authService.cacheUserData(user);
     } catch (e) {
-<<<<<<< HEAD
       debugPrint('[ProfileController] getMe() gagal: $e — mencoba data cache lokal.');
       // Gunakan data yang sudah tersimpan di SharedPreferences (bukan dummy)
       final cached = await _authService.getCachedUser();
@@ -59,18 +58,6 @@ class ProfileController extends GetxController {
       }
       // Jika tidak ada cache sama sekali (misal baru install), biarkan kosong —
       // user akan tetap pada akun mereka karena token masih ada.
-=======
-      debugPrint('Gagal memuat profil: $e. Menggunakan profil simulasi untuk testing.');
-      final mockUser = UserModel.mock;
-      name.value   = mockUser.name;
-      email.value  = mockUser.email;
-      height.value = mockUser.height ?? 172.0;
-      weight.value = mockUser.weight ?? 78.0;
-      bmi.value    = mockUser.bmi ?? 28.4;
-      age.value    = mockUser.age ?? 22;
-      gender.value = mockUser.gender ?? 'Laki-laki';
-      profilePicture.value = mockUser.profilePicture ?? '';
->>>>>>> 743fec2d02ac0b1482e652dbbccf96be981de46f
     } finally {
       isLoading.value = false;
     }
