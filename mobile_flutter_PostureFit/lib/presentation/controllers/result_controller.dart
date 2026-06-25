@@ -46,6 +46,20 @@ class ResultController extends GetxController {
     isLoading.value = true;
 
     try {
+      // SIMULASI/MOCK API BACKEND UNTUK SEMENTARA (DAPAT DIKEMBALIKAN NANTI):
+      await Future.delayed(const Duration(seconds: 1));
+      final result = {
+        'bmi': 22.4,
+        'kategori_tubuh': 'Normal',
+        'rekomendasi': 'Postur tubuh Anda terpantau normal dan seimbang. Tetap lakukan latihan penguatan otot core dan peregangan punggung minimal 2 kali seminggu untuk mempertahankan keselarasan tulang belakang.',
+        'saw_scores': {
+          'kebugaran': 85,
+          'fleksibilitas': 90,
+          'skor_akhir': 87.5
+        }
+      };
+
+      /*
       final result = await _assessmentService.generateAssessment(
         tinggi:        tinggiBadan.value,
         berat:         beratBadan.value,
@@ -53,6 +67,7 @@ class ResultController extends GetxController {
         lingkar:       lingkarPerut.value,
         fokusPilihan:  fokusOptions[selectedFokus.value],
       );
+      */
 
       // Catat aktivitas analisis postur berhasil dengan email aktif (jika ada)
       final kategori = result['kategori_tubuh'] ?? '-';

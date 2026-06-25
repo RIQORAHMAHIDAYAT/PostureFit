@@ -30,7 +30,7 @@ class NotificationView extends GetView<NotificationController> {
 
               return RefreshIndicator(
                 color: AppColors.primary,
-                onRefresh: () async => controller.onInit(),
+                onRefresh: () => controller.loadNotifications(),
                 child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(

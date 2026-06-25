@@ -64,7 +64,6 @@ class ActivityLogController extends GetxController {
       if (!hasCleared) {
         final now = DateTime.now();
         // Hanya tambahkan jika log dengan judul yang sama belum ada untuk menghindari duplikasi
-        // jika kita nanti memutuskan untuk menyimpannya ke SharedPreferences.
         final mockLogs = [
           {
             'icon': 'login',
