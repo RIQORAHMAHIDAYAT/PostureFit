@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -99,7 +100,7 @@ enum NotificationType { posture, workout, education, system }
 // ---------------------------------------------------------------------------
 // Controller
 // ---------------------------------------------------------------------------
-class NotificationController extends GetxController {
+class NotificationController extends GetxController with WidgetsBindingObserver {
   final RxList<NotificationItem> notifications = <NotificationItem>[].obs;
   final RxBool isLoading = false.obs;
   
@@ -107,6 +108,7 @@ class NotificationController extends GetxController {
   final RxInt _tick = 0.obs;
 
   Timer? _timer;
+  Timer? _pollingTimer;
 
   static String get _baseUrl => AppConstants.baseUrl;
 
@@ -118,21 +120,38 @@ class NotificationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadNotifications();
+    WidgetsBinding.instance.addObserver(this);
+    loadNotifications();
     // Refresh tick setiap 30 detik agar timeLabel terupdate
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       _tick.value++;
     });
+    // Polling setiap 5 menit — silent agar tidak muncul spinner
+    _pollingTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      loadNotifications(silent: true);
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Silent refresh saat app kembali ke foreground
+      loadNotifications(silent: true);
+    }
   }
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _pollingTimer?.cancel();
     super.onClose();
   }
 
-  Future<void> _loadNotifications() async {
-    isLoading.value = true;
+  /// [silent] = true → tidak tampilkan loading spinner (untuk polling & app resume)
+  /// [silent] = false (default) → tampilkan loading spinner (untuk load awal & pull-to-refresh)
+  Future<void> loadNotifications({bool silent = false}) async {
+    if (!silent) isLoading.value = true;
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString(AppConstants.keyToken) ?? '';
@@ -160,53 +179,13 @@ class NotificationController extends GetxController {
         notifications.assignAll(
           items.map((e) => NotificationItem.fromJson(e as Map<String, dynamic>)),
         );
-      } else {
-        _loadDummyData();
       }
     } catch (e) {
-      print('Error loading notifications: $e');
-      _loadDummyData();
+      // Error koneksi: pertahankan data yang sudah ada, jangan tampilkan dummy
+      print('[NotificationController] Gagal fetch notifikasi: $e');
     } finally {
-      isLoading.value = false;
+      if (!silent) isLoading.value = false;
     }
-  }
-
-  void _loadDummyData() {
-    final now = DateTime.now().toUtc();
-    notifications.assignAll([
-      NotificationItem(
-        id: '1',
-        title: 'Cek Postur Hari Ini',
-        message: 'Jangan lupa lakukan scan postur harian Anda untuk memantau perkembangan.',
-        createdAt: now.subtract(const Duration(minutes: 5)),
-        type: NotificationType.posture,
-        isRead: false,
-      ),
-      NotificationItem(
-        id: '2',
-        title: 'Sesi Workout Siap',
-        message: 'Program latihan hari ini sudah tersedia. Mulai sekarang!',
-        createdAt: now.subtract(const Duration(hours: 1)),
-        type: NotificationType.workout,
-        isRead: false,
-      ),
-      NotificationItem(
-        id: '3',
-        title: 'Artikel Baru: Ergonomic Workspace',
-        message: 'Temukan tips mengatur meja kerja Anda agar postur tetap terjaga.',
-        createdAt: now.subtract(const Duration(hours: 3)),
-        type: NotificationType.education,
-        isRead: true,
-      ),
-      NotificationItem(
-        id: '4',
-        title: 'Selamat! Target Mingguan Tercapai',
-        message: 'Anda telah menyelesaikan 5 sesi postur minggu ini. Pertahankan!',
-        createdAt: now.subtract(const Duration(days: 1)),
-        type: NotificationType.system,
-        isRead: true,
-      ),
-    ]);
   }
 
   /// Tandai satu notifikasi sebagai sudah dibaca
@@ -262,4 +241,3 @@ class NotificationController extends GetxController {
     }
   }
 }
-

@@ -85,22 +85,6 @@ class ResultController extends GetxController {
         email: activeEmail,
       );
 
-      // Catat aktivitas analisis postur berhasil dengan email aktif (jika ada)
-      final kategori = result['kategori_tubuh'] ?? '-';
-      String? activeEmail;
-      try {
-        if (Get.isRegistered<ProfileController>()) {
-          activeEmail = Get.find<ProfileController>().email.value;
-        }
-      } catch (_) {}
-
-      await _activityLogService.saveLog(
-        icon: 'fitness_center',
-        title: 'Analisis Postur',
-        desc: 'Melakukan analisis postur tubuh dengan hasil kategori: $kategori.',
-        email: activeEmail,
-      );
-
       // Navigasi ke halaman hasil dengan data dari server
       Get.toNamed(
         '/analysis-result',
