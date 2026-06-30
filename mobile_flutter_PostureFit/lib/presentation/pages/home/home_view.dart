@@ -8,6 +8,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/activity_progress_bar.dart';
 import '../../widgets/feature_button.dart';
 import '../../controllers/home_controller.dart';
+import '../../controllers/notification_controller.dart';
 import '../../../routes/app_routes.dart';
 
 class HomeBody extends GetView<HomeController> {
@@ -120,18 +121,22 @@ class _HomeAppBar extends GetView<HomeController> {
                   size: AppDimensions.iconMD,
                 ),
               ),
-              Positioned(
-                top: 8,
-                right: 9,
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF5C5C),
-                    shape: BoxShape.circle,
+              Obx(() {
+                final hasUnread = Get.find<NotificationController>().unreadCount > 0;
+                if (!hasUnread) return const SizedBox.shrink();
+                return Positioned(
+                  top: 8,
+                  right: 9,
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF5C5C),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
             ],
           ),
           ),

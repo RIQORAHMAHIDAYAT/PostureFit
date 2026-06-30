@@ -59,7 +59,7 @@ class AppPages {
     GetPage(name: AppRoutes.workoutPlan, page: () => const WorkoutPlanView(), binding: WorkoutPlanBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.education, page: () => const EducationView(), binding: EducationBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.profile, page: () => const ProfileView(), binding: ProfileBinding(), transition: Transition.cupertino),
-    GetPage(name: AppRoutes.notification, page: () => const NotificationView(), binding: NotificationBinding(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.notification, page: () => const NotificationView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.imagePreview, page: () => const ImagePreviewView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.editProfile, page: () => const EditProfileView(), binding: EditProfileBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.activityLog, page: () => const ActivityLogView(), binding: ActivityLogBinding(), transition: Transition.cupertino),
