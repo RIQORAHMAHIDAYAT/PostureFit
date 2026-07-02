@@ -67,12 +67,6 @@ class ForgotPasswordResetRequest(BaseModel):
     email: str
     new_password: str = Field(..., min_length=6)
 
-class Token(BaseModel):
-    access_token: str
-    token_type:   str
-    user:         UserOut
-
-
 # ====================================================================
 # User  —  Fields match Flutter UserModel.fromJson & ProfileController
 # ====================================================================
@@ -123,6 +117,12 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type:   str
+    user:         UserOut
+
+
 # ====================================================================
 # Profile Update  —  PUT /api/auth/profile
 # ====================================================================
@@ -164,6 +164,7 @@ class AssessmentResult(BaseModel):
     kategori_tubuh: str                  # Kurus / Normal / Gemuk / Obesitas
     rekomendasi:    str
     saw_scores:     Optional[dict] = None
+    image_url:      Optional[str]  = None
 
 
 class AssessmentResponse(BaseModel):

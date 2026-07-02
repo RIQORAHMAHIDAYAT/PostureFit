@@ -4,6 +4,7 @@ import '../../routes/app_routes.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/activity_log_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'notification_controller.dart';
 
 class LoginController extends GetxController {
   final emailController    = TextEditingController();
@@ -38,6 +39,13 @@ class LoginController extends GetxController {
 
       // Navigasi ke halaman utama setelah login berhasil
       Get.offAllNamed(AppRoutes.main);
+
+      // Refresh notifikasi segera setelah login agar token baru dipakai
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().loadNotifications();
+        }
+      });
     } catch (e) {
       Get.snackbar(
         'Login Gagal',
@@ -94,6 +102,13 @@ class LoginController extends GetxController {
 
       // Navigasi ke home
       Get.offAllNamed(AppRoutes.main);
+
+      // Refresh notifikasi segera setelah login Google agar token baru dipakai
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.isRegistered<NotificationController>()) {
+          Get.find<NotificationController>().loadNotifications();
+        }
+      });
     } catch (e) {
       Get.snackbar(
         'Login Google Gagal',

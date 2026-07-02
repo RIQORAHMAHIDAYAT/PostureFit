@@ -52,7 +52,7 @@ class ActivityLogController extends GetxController {
       if (!hasRegistrationLog && currentUser != null && currentUser.createdAt != null) {
         // Tambahkan registrasi log berdasarkan data riil created_at dari backend
         combined.add({
-          'icon': 'login',
+          'icon': 'register',
           'title': 'Registrasi Akun',
           'desc': 'Akun PostureFit Anda telah berhasil dibuat.',
           'time': currentUser.createdAt!.toIso8601String(),
@@ -66,27 +66,27 @@ class ActivityLogController extends GetxController {
         // Hanya tambahkan jika log dengan judul yang sama belum ada untuk menghindari duplikasi
         final mockLogs = [
           {
-            'icon': 'login',
+            'icon': 'register',
             'title': 'Registrasi Akun',
-            'desc': 'Akun PostureFit Anda telah berhasil dibuat.',
+            'desc': 'Akun PostureFit Anda berhasil dibuat dan diverifikasi.',
             'time': now.subtract(const Duration(days: 2, hours: 3)).toIso8601String(),
           },
           {
             'icon': 'login',
-            'title': 'Login Awal',
+            'title': 'Login Pertama',
             'desc': 'Berhasil masuk ke aplikasi untuk pertama kali.',
             'time': now.subtract(const Duration(days: 2, hours: 2)).toIso8601String(),
           },
           {
             'icon': 'edit',
             'title': 'Pembaruan Profil',
-            'desc': 'Mengubah data: Nama, Usia, Tinggi Badan, Berat Badan.',
+            'desc': 'Data profil berhasil diperbarui: Nama, Usia, Tinggi, Berat Badan.',
             'time': now.subtract(const Duration(days: 1, hours: 5)).toIso8601String(),
           },
           {
             'icon': 'fitness_center',
             'title': 'Analisis Postur',
-            'desc': 'Melakukan analisis postur tubuh dengan hasil kategori: Normal.',
+            'desc': 'Analisis postur tubuh berhasil dilakukan. Hasil: Kategori Normal.',
             'time': now.subtract(const Duration(hours: 4)).toIso8601String(),
           },
         ];

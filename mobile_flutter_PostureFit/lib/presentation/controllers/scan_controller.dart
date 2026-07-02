@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../routes/app_routes.dart';
@@ -18,32 +17,7 @@ class ScanController extends GetxController {
 
   /// Ambil foto dari kamera
   Future<void> onCapture() async {
-    isCapturing.value = true;
-    try {
-      final picked = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 90,
-        preferredCameraDevice: CameraDevice.rear,
-      );
-      if (picked != null) {
-        capturedBytes.value = await picked.readAsBytes();
-        capturedPath.value = picked.path;
-        hasCapture.value = true;
-        await Future.delayed(const Duration(milliseconds: 300));
-        Get.toNamed(AppRoutes.result);
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Kamera tidak tersedia',
-        kIsWeb
-            ? 'Gunakan galeri untuk memilih gambar di browser.'
-            : 'Coba gunakan galeri atau periksa izin kamera.',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
-      );
-    } finally {
-      isCapturing.value = false;
-    }
+    Get.toNamed(AppRoutes.realtimeCamera);
   }
 
   /// Ambil gambar dari galeri

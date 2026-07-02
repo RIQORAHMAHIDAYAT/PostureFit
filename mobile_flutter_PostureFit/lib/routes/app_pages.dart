@@ -12,7 +12,7 @@ import '../bindings/workout_plan_binding.dart';
 import '../bindings/education_binding.dart';
 import '../bindings/profile_binding.dart';
 import '../bindings/edit_profile_binding.dart';
-import '../bindings/notification_binding.dart';
+
 import '../presentation/pages/login/login_view.dart';
 import '../presentation/pages/register/register_view.dart';
 import '../presentation/pages/main/main_view.dart';
@@ -20,6 +20,7 @@ import '../presentation/pages/home/home_view.dart';
 import '../presentation/pages/scan/scan_view.dart';
 import '../presentation/pages/scan/result_view.dart';
 import '../presentation/pages/scan/analysis_result_view.dart';
+import '../presentation/pages/scan/realtime_camera_view.dart';
 import '../presentation/pages/workout_plan/workout_plan_view.dart';
 import '../presentation/pages/education/education_view.dart';
 import '../presentation/pages/profile/profile_view.dart';
@@ -71,5 +72,6 @@ class AppPages {
     GetPage(name: AppRoutes.resetOtpVerification, page: () => const ResetOtpView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.newPassword, page: () => const NewPasswordView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.privacyPolicy, page: () => const PrivacyPolicyView(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.realtimeCamera, page: () => const RealtimeCameraView(), transition: Transition.cupertino),
   ];
 }

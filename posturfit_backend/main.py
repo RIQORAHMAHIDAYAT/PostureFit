@@ -1,13 +1,3 @@
-"""
-main.py — FastAPI application entry point.
-
-- Initializes the app with metadata.
-- Configures CORS for the Flutter frontend.
-- Mounts the sqladmin dashboard (protected by login).
-- Includes all API routers.
-- Creates database tables on startup.
-"""
-
 import os
 import asyncio
 from contextlib import asynccontextmanager

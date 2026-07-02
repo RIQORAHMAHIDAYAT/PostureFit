@@ -7,6 +7,7 @@ class AnalysisResultController extends GetxController {
   late final double umur;
   late final double lingkarPerut;
   late final int lingkungan; // 0=Rumah, 1=Gym, 2=Calisthenics
+  late final String? imageUrl;
 
   final RxDouble bmi        = 0.0.obs;
   final RxString kategori   = ''.obs;
@@ -24,6 +25,7 @@ class AnalysisResultController extends GetxController {
     umur        = (args['umur']   ?? 25.0).toDouble();
     lingkarPerut = (args['lingkar'] ?? 80.0).toDouble();
     lingkungan  = (args['lingkungan'] ?? 0) as int;
+    imageUrl    = args['image_url'] as String?;
 
     // ── Prioritaskan data dari server ──────────────────────────────────────
     final serverBmi      = args['bmi'];
@@ -186,7 +188,7 @@ class AnalysisResultController extends GetxController {
   }
 
   void onLihatHasil() {
-    Get.toNamed(AppRoutes.imagePreview);
+    Get.toNamed(AppRoutes.imagePreview, arguments: {'imageUrl': imageUrl});
   }
   void onUbahData() => Get.back();
   void onBack() => Get.back();

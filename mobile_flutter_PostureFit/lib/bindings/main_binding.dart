@@ -15,7 +15,7 @@ class MainBinding extends Bindings {
     Get.lazyPut<HomeController>(() => HomeController());
     Get.put<EducationController>(EducationController());
     Get.put<ProfileController>(ProfileController());
-    Get.put<NotificationController>(NotificationController());
+    Get.put<NotificationController>(NotificationController(), permanent: false);
     Get.put<MainController>(MainController());
   }
 }
