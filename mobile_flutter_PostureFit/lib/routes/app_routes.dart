@@ -25,4 +25,5 @@ class AppRoutes {
   static const String newPassword = '/new-password';
   static const String privacyPolicy = '/privacy-policy';
   static const String realtimeCamera = '/realtime-camera';
+  static const String educationDetail = '/education-detail';
 }

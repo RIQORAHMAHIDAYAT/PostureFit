@@ -91,26 +91,42 @@ class ProgressReportView extends GetView<ProgressReportController> {
           ),
           const SizedBox(height: 24),
           SizedBox(
-            height: 200,
-            child: Obx(() => Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: controller.chartData.map((val) {
-                    return Container(
-                      width: 20,
-                      height: val * 2,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    );
-                  }).toList(),
-                )),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((d) => Text(d, style: AppTextStyles.captionStyle)).toList(),
+            height: 230,
+            child: Obx(() {
+              if (controller.chartData.isEmpty || controller.chartLabels.isEmpty) {
+                return const Center(child: Text('Belum ada data progres.'));
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(controller.chartData.length, (index) {
+                  final val = controller.chartData[index];
+                  final label = index < controller.chartLabels.length ? controller.chartLabels[index] : '';
+                  return Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Container(
+                          width: 20,
+                          height: (val > 0 ? (val * 2) : 4).toDouble().clamp(4.0, 200.0),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          label,
+                          style: AppTextStyles.captionStyle.copyWith(fontSize: 10),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              );
+            }),
           ),
         ],
       ),
@@ -118,20 +134,23 @@ class ProgressReportView extends GetView<ProgressReportController> {
   }
 
   Widget _buildStatsGrid(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: 1.5,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      children: [
-        _statItem(context, 'Total Kalori', '12,450', 'kcal', Icons.local_fire_department, AppColors.error),
-        _statItem(context, 'Waktu Latih', '45.5', 'jam', Icons.timer, AppColors.primary),
-        _statItem(context, 'Sesi Selesai', '32', 'sesi', Icons.check_circle, AppColors.success),
-        _statItem(context, 'Berat Badan', '68.5', 'kg', Icons.monitor_weight, AppColors.accent),
-      ],
-    );
+    return Obx(() {
+      final jamLatih = (controller.totalDurasi.value / 60).toStringAsFixed(1);
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        childAspectRatio: 1.5,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        children: [
+          _statItem(context, 'Total Kalori', '${controller.totalKalori.value}', 'kcal', Icons.local_fire_department, AppColors.error),
+          _statItem(context, 'Waktu Latih', jamLatih, 'jam', Icons.timer, AppColors.primary),
+          _statItem(context, 'Sesi Selesai', '${controller.totalSesi.value}', 'sesi', Icons.check_circle, AppColors.success),
+          _statItem(context, 'Berat Badan', '${controller.beratBadan.value}', 'kg', Icons.monitor_weight, AppColors.accent),
+        ],
+      );
+    });
   }
 
   Widget _statItem(BuildContext context, String label, String value, String unit, IconData icon, Color color) {

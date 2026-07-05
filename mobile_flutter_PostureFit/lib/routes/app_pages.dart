@@ -42,6 +42,7 @@ import '../presentation/pages/forgot_password/forgot_password_view.dart';
 import '../presentation/pages/forgot_password/reset_otp_view.dart';
 import '../presentation/pages/forgot_password/new_password_view.dart';
 import '../presentation/pages/privacy_policy/privacy_policy_view.dart';
+import '../presentation/pages/education/education_detail_view.dart';
 import 'app_routes.dart';
 
 
@@ -73,5 +74,6 @@ class AppPages {
     GetPage(name: AppRoutes.newPassword, page: () => const NewPasswordView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.privacyPolicy, page: () => const PrivacyPolicyView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.realtimeCamera, page: () => const RealtimeCameraView(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.educationDetail, page: () => const EducationDetailView(), transition: Transition.cupertino),
   ];
 }

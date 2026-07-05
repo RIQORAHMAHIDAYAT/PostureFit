@@ -141,7 +141,6 @@ class NotificationAdmin(ModelView, model=Notification):
     # ── Tabel daftar notifikasi ──────────────────────────────────────────────
     column_list = [
         Notification.id,
-        Notification.user_id,
         Notification.title,
         Notification.type,
         Notification.is_read,
@@ -153,51 +152,34 @@ class NotificationAdmin(ModelView, model=Notification):
 
     # ── Form buat notifikasi — tanpa field user (broadcast otomatis) ─────────
     # Sembunyikan semua kolom yang tidak perlu diisi admin
-    form_excluded_columns  = ["user_id", "created_at", "user"]
+    form_excluded_columns  = ["created_at", "user"]
     form_include_pk        = False   # Jangan tampilkan kolom ID
 
     name        = "Notifikasi"
     name_plural = "Notifikasi"
     icon        = "fa-solid fa-bell"
 
-    # ── Override insert — kirim ke SEMUA user otomatis ───────────────────────
+    # ── Override insert — buat satu notifikasi global ───────────────────────
     async def insert_model(self, request, data: dict):
         from database import SessionLocal
         db = SessionLocal()
         try:
-            all_user_ids = [row[0] for row in db.query(User.id).all()]
             title      = data.get("title", "Notifikasi")
             message    = data.get("message", "")
             notif_type = data.get("type", "system")
-            is_read    = False   # selalu unread saat baru dibuat
+            is_read    = data.get("is_read", False)
 
-            last_notif = None
-            if all_user_ids:
-                for uid in all_user_ids:
-                    n = Notification(
-                        user_id=uid,
-                        title=title,
-                        message=message,
-                        type=notif_type,
-                        is_read=is_read,
-                    )
-                    db.add(n)
-                    last_notif = n
-            else:
-                # Tidak ada user terdaftar — buat 1 entri sistem sebagai placeholder
-                last_notif = Notification(
-                    user_id="SYSTEM",
-                    title=title,
-                    message=message,
-                    type=notif_type,
-                    is_read=is_read,
-                )
-                db.add(last_notif)
-
+            n = Notification(
+                title=title,
+                message=message,
+                type=notif_type,
+                is_read=is_read
+            )
+            db.add(n)
             db.commit()
-            db.refresh(last_notif)
-            db.expunge(last_notif)
-            return last_notif
+            db.refresh(n)
+            db.expunge(n)
+            return n
         except Exception as e:
             db.rollback()
             raise e

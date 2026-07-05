@@ -53,7 +53,10 @@ class EducationBody extends GetView<EducationController> {
                       return EducationCard(
                         item: controller.educationList[index],
                         onTap: () {
-                          // TODO: Navigate to detail view
+                          Get.toNamed(
+                            AppRoutes.educationDetail,
+                            arguments: controller.educationList[index],
+                          );
                         },
                       );
                     },

@@ -44,7 +44,9 @@ from routers import (
     education_router,
     notification_router,
     progress_router,
+    workout_plan_router,
 )
+from routers.workout_plan_router import workout_router, dss_router
 
 # Secret key untuk menandatangani session cookie — WAJIB ada di .env
 _SESSION_SECRET = os.getenv("SESSION_SECRET")
@@ -169,6 +171,8 @@ app.include_router(workout_log_router.router)
 app.include_router(education_router.router)
 app.include_router(notification_router.router)
 app.include_router(progress_router.router)
+app.include_router(workout_router)   # /api/workout-plan
+app.include_router(dss_router)       # /api/dss
 app.include_router(admin_api_router)
 
 

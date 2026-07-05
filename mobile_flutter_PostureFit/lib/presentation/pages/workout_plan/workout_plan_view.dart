@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../controllers/workout_plan_controller.dart';
+import '../../controllers/workout_log_controller.dart';
 
 // WorkoutPlanBody: dipakai oleh MainPage (IndexedStack) — tanpa bottom nav
 class WorkoutPlanBody extends GetView<WorkoutPlanController> {
@@ -31,9 +32,16 @@ class WorkoutPlanBody extends GetView<WorkoutPlanController> {
                       children: [
                         _StatRow(),
                         const SizedBox(height: 20),
-                        _TabBar(),
-                        const SizedBox(height: 16),
                         _WorkoutUtamaCard(),
+                        Obx(() {
+                          if (controller.workoutKoreksiPostur.isEmpty) return const SizedBox.shrink();
+                          return Column(
+                            children: [
+                              const SizedBox(height: 20),
+                              _WorkoutKoreksiSection(),
+                            ],
+                          );
+                        }),
                         const SizedBox(height: 20),
                         _WorkoutTambahanSection(),
                         const SizedBox(height: 16),
@@ -171,14 +179,15 @@ class _WorkoutHeader extends GetView<WorkoutPlanController> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Obx(() {
-              final pct = (controller.progress.value * 100).toStringAsFixed(0);
+              final kalori = controller.estimasiKalori.value;
+              final durasi = controller.estimasiDurasi.value;
               return Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Progress hari ini',
+                        'Estimasi Sesi Hari Ini',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 13,
@@ -186,7 +195,7 @@ class _WorkoutHeader extends GetView<WorkoutPlanController> {
                         ),
                       ),
                       Text(
-                        '$pct% Selesai',
+                        '$durasi mnt • $kalori kkal',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
@@ -199,7 +208,7 @@ class _WorkoutHeader extends GetView<WorkoutPlanController> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: LinearProgressIndicator(
-                      value: controller.progress.value,
+                      value: kalori > 0 ? (durasi / 60.0).clamp(0.0, 1.0) : 0.0,
                       backgroundColor: Colors.white24,
                       valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                       minHeight: 8,
@@ -224,15 +233,17 @@ class _StatRow extends GetView<WorkoutPlanController> {
           children: [
             Expanded(
               child: _StatCard(
-                value: '${controller.tugasSelesai.value} / ${controller.tugasTotal.value}',
-                label: 'Tugas Selesai',
+                value: controller.workoutTambahan.isEmpty
+                    ? '–'
+                    : '${controller.workoutTambahan.length} latihan',
+                label: 'Latihan',
                 valueColor: const Color(0xFF4A90D9),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _StatCard(
-                value: '${controller.kalori.value} kkal',
+                value: '${controller.estimasiKalori.value} kkal',
                 label: 'Terbakar',
                 valueColor: const Color(0xFF3BB88F),
               ),
@@ -240,7 +251,7 @@ class _StatRow extends GetView<WorkoutPlanController> {
             const SizedBox(width: 10),
             Expanded(
               child: _StatCard(
-                value: '${controller.durasi.value} mnt',
+                value: '${controller.estimasiDurasi.value} mnt',
                 label: 'Durasi',
                 valueColor: const Color(0xFFE07B39),
               ),
@@ -403,24 +414,168 @@ class _WorkoutUtamaCard extends GetView<WorkoutPlanController> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2E6099),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  controller.workoutUtamaSet.value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E6099),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      controller.workoutUtamaSet.value,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      final item = controller.workoutUtamaItem.value;
+                      if (item != null) {
+                        final logController = Get.isRegistered<WorkoutLogController>()
+                            ? Get.find<WorkoutLogController>()
+                            : Get.put(WorkoutLogController());
+                        logController.startWorkout(item);
+                        Get.toNamed('/workout-log');
+                      }
+                    },
+                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                    label: const Text('Mulai'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4A90D9),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      minimumSize: const Size(0, 36),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ));
+  }
+}
+
+// ─── Workout Koreksi Section ─────────────────────────────────────────────────
+
+class _WorkoutKoreksiSection extends GetView<WorkoutPlanController> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Latihan Koreksi Postur',
+          style: TextStyle(
+            color: Color(0xFFE07B39),
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Obx(() => Container(
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor(context),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFE07B39).withValues(alpha: 0.07),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: controller.workoutKoreksiPostur.length,
+                separatorBuilder: (_, __) => Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppTheme.dividerColor(context),
+                  indent: 16,
+                  endIndent: 16,
+                ),
+                itemBuilder: (_, i) {
+                  final item = controller.workoutKoreksiPostur[i];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 13),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE07B39).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.accessibility_new_rounded,
+                              color: Color(0xFFE07B39), size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.nama,
+                                style: TextStyle(
+                                  color: AppTheme.textPrimary(context),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Target: ${item.target}',
+                                style: TextStyle(
+                                  color: AppTheme.textSecondary(context),
+                                  fontSize: 11,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.setReps,
+                                style: const TextStyle(
+                                  color: Color(0xFFE07B39),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            final logController = Get.isRegistered<WorkoutLogController>()
+                                ? Get.find<WorkoutLogController>()
+                                : Get.put(WorkoutLogController());
+                            logController.startWorkout(item);
+                            Get.toNamed('/workout-log');
+                          },
+                          icon: const Icon(Icons.play_circle_fill_rounded),
+                          color: const Color(0xFFE07B39),
+                          iconSize: 32,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            )),
+      ],
+    );
   }
 }
 
@@ -502,8 +657,31 @@ class _WorkoutTambahanSection extends GetView<WorkoutPlanController> {
                                   fontSize: 11,
                                 ),
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.setReps,
+                                style: TextStyle(
+                                  color: item.iconColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ],
                           ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            final logController = Get.isRegistered<WorkoutLogController>()
+                                ? Get.find<WorkoutLogController>()
+                                : Get.put(WorkoutLogController());
+                            logController.startWorkout(item);
+                            Get.toNamed('/workout-log');
+                          },
+                          icon: const Icon(Icons.play_circle_fill_rounded),
+                          color: item.iconColor,
+                          iconSize: 32,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),

@@ -419,3 +419,52 @@ class ProgressResponse(BaseModel):
     status: str = "success"
     period: str
     data:   List[ProgressDataPoint]
+
+
+# ====================================================================
+# Workout Plan — mapped dari workout_recommender.py
+# ====================================================================
+class WorkoutItemOut(BaseModel):
+    """Satu item latihan dalam rencana workout."""
+    nama_latihan:      str
+    target_otot:       str
+    set_reps:          str
+    kalori_estimasi:   int
+    icon_key:          str = "fitness_center"
+
+
+class WorkoutPlanOut(BaseModel):
+    """Rencana workout personal dari assessment terakhir."""
+    kategori_tubuh:           str
+    postur_label:             str
+    lingkungan:               str
+    postur_catatan:           str = ""
+    latihan_utama:            Optional[WorkoutItemOut] = None
+    latihan_tambahan:         List[WorkoutItemOut] = []
+    latihan_koreksi_postur:   List[WorkoutItemOut] = []
+    estimasi_kalori_total:    int = 0
+    estimasi_durasi_menit:    int = 35
+    tanggal_assessment:       Optional[str] = None
+
+
+# ====================================================================
+# DSS Analysis — detail skor SAW + insight postur
+# ====================================================================
+class DssScoreItem(BaseModel):
+    """Skor SAW satu kategori alternatif."""
+    kategori:   str
+    skor:       float
+    persentase: int     # skor × 100, dibulatkan
+
+
+class DssDetailOut(BaseModel):
+    """Detail lengkap hasil DSS untuk halaman DSS Analysis."""
+    tanggal_assessment:     Optional[str] = None
+    kategori_terpilih:      str
+    skor_kesehatan:         int           # 0-100 (dikomputasi dari skor SAW winner × 100)
+    postur_label:           str
+    postur_catatan:         str = ""
+    rekomendasi:            str
+    saw_detail:             List[DssScoreItem] = []
+    bmi:                    Optional[float] = None
+    kategori_bmi:           Optional[str] = None

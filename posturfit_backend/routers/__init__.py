@@ -7,4 +7,5 @@ from routers import (
     education_router,
     notification_router,
     progress_router,
+    workout_plan_router,
 )

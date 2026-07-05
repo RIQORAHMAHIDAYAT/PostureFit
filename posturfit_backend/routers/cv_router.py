@@ -25,6 +25,7 @@ from schemas import (
 from auth import get_current_user
 from fitness_analysis import calculate_bmi, calculate_whtr
 from saw_engine import calculate_saw
+from workout_recommender import generate_workout_plan
 
 router = APIRouter(prefix="/api/assessment", tags=["Vitality Assessment"])
 
@@ -108,18 +109,8 @@ def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
     # 2. Klasifikasi Postur Menggunakan Model YOLOv8 .pt
     posture = predict_posture_yolo(image)
 
-    # Validasi posisi wajib berdiri untuk PostureFit
-    if posture != "standing":
-        posture_id = {
-            "lying": "Berbaring/Rebah",
-            "bending": "Membungkuk",
-            "sitting": "Duduk",
-            "squatting": "Jongkok"
-        }.get(posture, posture)
-        raise ValueError(
-            f"Posisi tubuh Anda terdeteksi: '{posture_id}'. "
-            "Mohon berdiri tegak lurus menghadap kamera agar hasil analisis akurat."
-        )
+    # Postur akan diteruskan ke sistem rekomendasi (dapat memicu Latihan Koreksi Postur jika 'bending' dll)
+
 
     # 3. Ekstraksi Metrik Koordinat MediaPipe
     landmarks = mp_results.pose_landmarks.landmark
@@ -264,6 +255,14 @@ async def generate_recommendation(
         kategori_tubuh=kategori_tubuh,
         rekomendasi=rekomendasi_teks,
         saw_scores=json.dumps(saw_scores),
+        postur_label=postur_terdeteksi,
+        workout_json=json.dumps(
+            generate_workout_plan(
+                kategori_tubuh=kategori_tubuh,
+                postur_label=postur_terdeteksi,
+                lingkungan="Rumah",   # default; frontend bisa request ulang dengan lingkungan berbeda
+            )
+        ),
     )
     db.add(new_scan)
     db.commit()
