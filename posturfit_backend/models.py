@@ -62,8 +62,8 @@ class User(Base):
         "DailyWorkoutPlan", back_populates="user", cascade="all, delete-orphan")
     workout_logs = relationship(
         "WorkoutLog",       back_populates="user", cascade="all, delete-orphan")
-    notifications = relationship(
-        "Notification",     back_populates="user", cascade="all, delete-orphan")
+    # relasi notifikasi dihapus karena sekarang notifikasi bersifat global
+    # notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
 
 # ---------------------------------------------------------------------------
@@ -83,10 +83,14 @@ class CvAssessment(Base):
     umur = Column(Integer, nullable=True)
     bmi_kalkulasi = Column(DECIMAL(4, 2), nullable=True)
     kategori_tubuh = Column(String(50), nullable=True)
-    # ← BARU: teks rekomendasi SAW
+    # Teks rekomendasi SAW
     rekomendasi = Column(Text, nullable=True)
-    # ← BARU: JSON string skor SAW
+    # JSON string skor SAW per kategori {"Obesitas": 0.8, ...}
     saw_scores = Column(Text, nullable=True)
+    # Hasil klasifikasi postur dari model best.pt (standing/bending/sitting/dll)
+    postur_label = Column(String(50), nullable=True)
+    # JSON rencana workout personal yang dihasilkan workout_recommender
+    workout_json = Column(Text, nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="assessments")
@@ -212,24 +216,19 @@ class EducationArticle(Base):
 
 
 # ---------------------------------------------------------------------------
-# Notification  —  Notifikasi per-user
+# Notification  —  Notifikasi Global (Satu untuk semua user)
 # Fields aligned with Flutter NotificationController / NotificationItem
 # ---------------------------------------------------------------------------
 class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(String(50), primary_key=True, default=_generate_uuid)
-    user_id = Column(String(50), ForeignKey(
-        "users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String(200), nullable=False)        # → frontend: title
     message = Column(Text, nullable=False)               # → frontend: message
     # posture/workout/education/system
     type = Column(String(50), nullable=True)
     is_read = Column(Boolean, default=False)             # → frontend: isRead
     created_at = Column(DateTime, default=func.now())  # → frontend: time
-
-    # Relationships
-    user = relationship("User", back_populates="notifications")
 
 
 # ---------------------------------------------------------------------------

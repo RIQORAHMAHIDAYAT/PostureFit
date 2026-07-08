@@ -12,19 +12,16 @@ router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
 
 # ---------------------------------------------------------------------------
-# GET /api/notifications  —  Get all notifications for current user
+# GET /api/notifications  —  Get all notifications globally
 # ---------------------------------------------------------------------------
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get("", response_model=ApiResponse)
 def get_notifications(
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-
-    uid = current_user.id
-
+    """Get all global notifications."""
     notifications = (
         db.query(Notification)
-        .filter(Notification.user_id == uid)
         .order_by(Notification.created_at.desc())
         .all()
     )
@@ -35,33 +32,29 @@ def get_notifications(
     if not data:
         data = _get_seed_notifications()
 
-    unread_count = sum(1 for n in data if not n.get("is_read", False))
-
     return ApiResponse(
         status="success",
-        message="",
+        message="Daftar notifikasi global berhasil diambil.",
         data={
-            "unread_count": unread_count,
+            "unread_count": sum(1 for n in data if not n.get("is_read", False)),
             "notifications": data,
-        },
+        }
     )
 
 
 # ---------------------------------------------------------------------------
 # PATCH /api/notifications/{notif_id}/read  —  Mark as read
 # ---------------------------------------------------------------------------
-@router.patch("/{notif_id}/read", status_code=status.HTTP_200_OK)
-def mark_as_read(
+@router.patch("/{notif_id}/read", response_model=ApiResponse)
+def mark_notification_read(
     notif_id: str,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """Mark a single notification as read."""
-    uid = current_user.id
-
+    """Mark a single global notification as read."""
     notif = (
         db.query(Notification)
-        .filter(Notification.id == notif_id, Notification.user_id == uid)
+        .filter(Notification.id == notif_id)
         .first()
     )
 
@@ -80,16 +73,13 @@ def mark_as_read(
 # ---------------------------------------------------------------------------
 # PATCH /api/notifications/read-all  —  Mark all as read
 # ---------------------------------------------------------------------------
-@router.patch("/read-all", status_code=status.HTTP_200_OK)
-def mark_all_as_read(
-    current_user: User = Depends(get_current_user),
+@router.patch("/read-all", response_model=ApiResponse)
+def mark_all_read(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """Mark all notifications for the current user as read."""
-    uid = current_user.id
-
+    """Mark all global notifications as read."""
     db.query(Notification).filter(
-        Notification.user_id == uid,
         Notification.is_read == False,
     ).update({"is_read": True})
     db.commit()
@@ -100,20 +90,18 @@ def mark_all_as_read(
 # ---------------------------------------------------------------------------
 # POST /api/notifications  —  Create a notification (internal/admin use)
 # ---------------------------------------------------------------------------
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ApiResponse, status_code=status.HTTP_201_CREATED)
 def create_notification(
     payload: dict,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """Create a notification for the current user."""
-    uid = current_user.id
-
+    """Create a global notification."""
     notif = Notification(
-        user_id=uid,
         title=payload.get("title", ""),
         message=payload.get("message", ""),
         type=payload.get("type", "system"),
+        is_read=False,
     )
     db.add(notif)
     db.commit()

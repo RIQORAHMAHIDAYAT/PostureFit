@@ -1,63 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../data/services/workout_plan_service.dart';
 
 class WorkoutItem {
   final String nama;
   final String target;
   final IconData icon;
   final Color iconColor;
+  final String setReps;
+  final int kalori;
 
   const WorkoutItem({
     required this.nama,
     required this.target,
     required this.icon,
     required this.iconColor,
+    required this.setReps,
+    required this.kalori,
   });
 }
 
 class WorkoutPlanController extends GetxController {
-  // Data dari AnalysisResultPage (mutable agar bisa di-assign ulang via loadData)
-  double bmi = 0.0;
-  String kategoriBMI = 'Normal';
-  double tinggiBadan = 0.0;
-  double beratBadan = 0.0;
-  double umur = 0.0;
-  double lingkarPerut = 0.0;
+  final _service = WorkoutPlanService();
 
   // State
   final RxInt selectedTab = 0.obs;
-  final RxDouble progress = 0.0.obs;
-  final RxInt tugasSelesai = 0.obs;
-  final RxInt tugasTotal = 0.obs;
-  final RxInt kalori = 0.obs;
-  final RxInt durasi = 0.obs;
-  final RxInt selectedNavIndex = 2.obs;
-
-  /// true jika halaman dibuka dari AnalysisResultPage (ada data BMI)
-  /// false jika dibuka langsung dari Home (belum ada analisis)
+  final RxBool isLoading = true.obs;
+  final RxBool hasError = false.obs;
+  final RxString errorMessage = ''.obs;
   final RxBool hasAnalysisData = false.obs;
+
+  // Data dari backend
+  final RxString kategoriBMI = 'Normal'.obs;
+  final RxString posturLabel = 'standing'.obs;
+  final RxString posturCatatan = ''.obs;
+  final RxString lingkunganAktif = 'Rumah'.obs;
+  final RxInt estimasiKalori = 0.obs;
+  final RxInt estimasiDurasi = 35.obs;
+
+  final RxString workoutUtamaNama = ''.obs;
+  final RxString workoutUtamaSet = ''.obs;
+  final Rxn<WorkoutItem> workoutUtamaItem = Rxn<WorkoutItem>();
+  final RxList<WorkoutItem> workoutTambahan = <WorkoutItem>[].obs;
+  final RxList<WorkoutItem> workoutKoreksiPostur = <WorkoutItem>[].obs;
 
   final List<String> tabs = ['Rumah', 'Gym', 'Calisthenics'];
 
-  // Workout utama & tambahan per tab & kategori
-  final RxString workoutUtamaNama = ''.obs;
-  final RxString workoutUtamaSet = ''.obs;
-  final RxList<WorkoutItem> workoutTambahan = <WorkoutItem>[].obs;
-
-  String get fokusLatihan {
-    switch (kategoriBMI) {
-      case 'Kurus':
-        return 'Strength & Bulking';
-      case 'Normal':
-        return 'Maintenance & Kebugaran';
-      case 'Gemuk':
-        return 'Fat Loss & Cardio';
-      case 'Obesitas':
-        return 'Mobilitas & Core';
-      default:
-        return 'Umum';
-    }
-  }
+  // Untuk navigasi
+  final RxInt selectedNavIndex = 2.obs;
 
   String get tanggal {
     final now = DateTime.now();
@@ -66,187 +56,127 @@ class WorkoutPlanController extends GetxController {
     return '${hari[now.weekday - 1]}, ${now.day} ${bulan[now.month - 1]} ${now.year}';
   }
 
+  String get fokusLatihan {
+    switch (kategoriBMI.value) {
+      case 'Kurus':
+        return 'Strength & Bulking';
+      case 'Normal':
+        return 'Maintenance & Kebugaran';
+      case 'Skinnyfat':
+        return 'Body Recomposition';
+      case 'Obesitas':
+        return 'Fat Loss & Mobilitas';
+      default:
+        return 'Umum';
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>?;
     if (args != null && args.containsKey('bmi')) {
-      // Dibuka dari AnalysisResultPage
-      hasAnalysisData.value = true;
-      bmi = (args['bmi'] ?? 22.0).toDouble();
-      kategoriBMI = args['kategori'] ?? 'Normal';
-      tinggiBadan = (args['tinggi'] ?? 170.0).toDouble();
-      beratBadan = (args['berat'] ?? 70.0).toDouble();
-      umur = (args['umur'] ?? 25.0).toDouble();
-      lingkarPerut = (args['lingkar'] ?? 80.0).toDouble();
-      // Prioritaskan tab sesuai pilihan lingkungan dari ResultPage
+      // Dibuka langsung dari AnalysisResultPage — tetap fetch dari API
       final int lingkungan = (args['lingkungan'] ?? 0) as int;
-      selectedTab.value = lingkungan.clamp(0, tabs.length - 1);
-      // Set mock progress if opened from AnalysisResultPage
-      progress.value = 0.85;
-      tugasSelesai.value = 4;
-      tugasTotal.value = 5;
-      kalori.value = 420;
-      durasi.value = 35;
-    } else {
-      // Dibuka langsung dari Home tanpa data analisis
-      hasAnalysisData.value = false;
-      bmi = 0.0;
-      kategoriBMI = 'Normal';
-      tinggiBadan = 0.0;
-      beratBadan = 0.0;
-      umur = 0.0;
-      lingkarPerut = 0.0;
-      selectedTab.value = 0;
+      lingkunganAktif.value = tabs[lingkungan.clamp(0, 2)];
+      selectedTab.value = lingkungan.clamp(0, 2);
     }
-    _loadWorkout();
+    fetchWorkoutPlan();
   }
 
   void setTab(int index) {
     selectedTab.value = index;
-    _loadWorkout();
+    lingkunganAktif.value = tabs[index];
+    fetchWorkoutPlan();
   }
 
   /// Dipanggil oleh MainController saat navigasi dari AnalysisResultPage
   void loadData(Map<String, dynamic> args) {
-    hasAnalysisData.value = true;
-    bmi = (args['bmi'] ?? 0.0).toDouble();
-    kategoriBMI = args['kategori'] ?? 'Normal';
-    tinggiBadan = (args['tinggi'] ?? 0.0).toDouble();
-    beratBadan = (args['berat'] ?? 0.0).toDouble();
-    umur = (args['umur'] ?? 0.0).toDouble();
-    lingkarPerut = (args['lingkar'] ?? 0.0).toDouble();
-    // Prioritaskan tab sesuai pilihan lingkungan dari ResultPage
     final int lingkungan = (args['lingkungan'] ?? 0) as int;
-    selectedTab.value = lingkungan.clamp(0, tabs.length - 1);
-    
-    // Set mock progress
-    progress.value = 0.85;
-    tugasSelesai.value = 4;
-    tugasTotal.value = 5;
-    kalori.value = 420;
-    durasi.value = 35;
-    
-    _loadWorkout();
+    lingkunganAktif.value = tabs[lingkungan.clamp(0, 2)];
+    selectedTab.value = lingkungan.clamp(0, 2);
+    fetchWorkoutPlan();
   }
 
-  void _loadWorkout() {
-    final tab = tabs[selectedTab.value];
-    final kat = kategoriBMI;
+  Future<void> fetchWorkoutPlan() async {
+    isLoading.value = true;
+    hasError.value = false;
+    try {
+      final data = await _service.getLatestWorkoutPlan(lingkungan: lingkunganAktif.value);
+      if (data == null) {
+        hasAnalysisData.value = false;
+      } else {
+        hasAnalysisData.value = true;
+        _applyData(data);
+      }
+    } catch (e) {
+      hasError.value = true;
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
-    // Workout utama
-    final mainMap = {
-      'Kurus': {
-        'Rumah': ['Wall Squats', '4 Set'],
-        'Gym': ['Barbell Squat', '5 Set'],
-        'Calisthenics': ['Pistol Squat', '4 Set'],
-      },
-      'Normal': {
-        'Rumah': ['Push-Up Circuit', '3 Set'],
-        'Gym': ['Bench Press', '4 Set'],
-        'Calisthenics': ['Muscle-Up', '3 Set'],
-      },
-      'Gemuk': {
-        'Rumah': ['Jumping Jacks', '4 Set'],
-        'Gym': ['Treadmill HIIT', '5 Sesi'],
-        'Calisthenics': ['Burpees', '4 Set'],
-      },
-      'Obesitas': {
-        'Rumah': ['Wall Squats', '2 Set'],
-        'Gym': ['Elliptical Cardio', '3 Sesi'],
-        'Calisthenics': ['Chair Dips', '2 Set'],
-      },
-    };
+  void _applyData(Map<String, dynamic> data) {
+    kategoriBMI.value = data['kategori_tubuh'] ?? 'Normal';
+    posturLabel.value = data['postur_label'] ?? 'standing';
+    posturCatatan.value = data['postur_catatan'] ?? '';
+    estimasiKalori.value = data['estimasi_kalori_total'] ?? 0;
+    estimasiDurasi.value = data['estimasi_durasi_menit'] ?? 35;
 
-    final main = mainMap[kat]?[tab] ?? ['Wall Squats', '3 Set'];
-    workoutUtamaNama.value = main[0];
-    workoutUtamaSet.value = main[1];
+    final utama = data['latihan_utama'] as Map<String, dynamic>?;
+    if (utama != null) {
+      workoutUtamaNama.value = utama['nama_latihan'] ?? '';
+      workoutUtamaSet.value = utama['set_reps'] ?? '';
+      workoutUtamaItem.value = WorkoutItem(
+        nama: utama['nama_latihan'] ?? '',
+        target: utama['target_otot'] ?? '',
+        icon: _iconFromKey(utama['icon_key'] ?? 'fitness_center'),
+        iconColor: _colorFromIcon(utama['icon_key'] ?? ''),
+        setReps: utama['set_reps'] ?? '',
+        kalori: utama['kalori_estimasi'] ?? 0,
+      );
+    } else {
+      workoutUtamaItem.value = null;
+    }
 
-    // Workout tambahan
-    final tambahanMap = {
-      'Kurus': {
-        'Rumah': [
-          WorkoutItem(nama: 'Diamond Pushups', target: 'Trisep & Dada', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Plank Hold', target: 'Stabilitas Inti', icon: Icons.self_improvement, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Peregangan Cat-Cow', target: 'Mobilitas Tulang Belakang', icon: Icons.accessibility_new, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Glute Bridge', target: 'Gluteus & Hamstring', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-        ],
-        'Gym': [
-          WorkoutItem(nama: 'Dumbbell Row', target: 'Punggung & Bisep', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Leg Press', target: 'Paha & Betis', icon: Icons.directions_run, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Cable Fly', target: 'Dada', icon: Icons.sports_gymnastics, iconColor: const Color(0xFFE07B39)),
-          WorkoutItem(nama: 'Lat Pulldown', target: 'Punggung Atas', icon: Icons.self_improvement, iconColor: const Color(0xFF9B59B6)),
-        ],
-        'Calisthenics': [
-          WorkoutItem(nama: 'Pull-Up', target: 'Punggung & Bisep', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Dip', target: 'Trisep & Dada', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Hollow Hold', target: 'Core', icon: Icons.self_improvement, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'L-Sit', target: 'Core & Hip Flexor', icon: Icons.accessibility_new, iconColor: const Color(0xFFE07B39)),
-        ],
-      },
-      'Normal': {
-        'Rumah': [
-          WorkoutItem(nama: 'Diamond Pushups', target: 'Trisep & Dada', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Plank Hold', target: 'Stabilitas Inti', icon: Icons.self_improvement, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Peregangan Cat-Cow', target: 'Mobilitas Tulang Belakang', icon: Icons.accessibility_new, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Glute Bridge', target: 'Gluteus & Hamstring', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-        ],
-        'Gym': [
-          WorkoutItem(nama: 'Incline Press', target: 'Dada Atas', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Deadlift', target: 'Punggung & Hamstring', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Cable Crunch', target: 'Core', icon: Icons.self_improvement, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Shoulder Press', target: 'Bahu', icon: Icons.accessibility_new, iconColor: const Color(0xFFE07B39)),
-        ],
-        'Calisthenics': [
-          WorkoutItem(nama: 'Archer Push-Up', target: 'Dada & Trisep', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Australian Pull-Up', target: 'Punggung', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Plank Shoulder Tap', target: 'Core & Bahu', icon: Icons.self_improvement, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Jump Squat', target: 'Paha & Kardio', icon: Icons.directions_run, iconColor: const Color(0xFFE07B39)),
-        ],
-      },
-      'Gemuk': {
-        'Rumah': [
-          WorkoutItem(nama: 'High Knees', target: 'Kardio & Core', icon: Icons.directions_run, iconColor: const Color(0xFFE07B39)),
-          WorkoutItem(nama: 'Mountain Climber', target: 'Kardio & Core', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Peregangan Cat-Cow', target: 'Mobilitas Tulang Belakang', icon: Icons.accessibility_new, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Glute Bridge', target: 'Gluteus & Hamstring', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-        ],
-        'Gym': [
-          WorkoutItem(nama: 'Rowing Machine', target: 'Punggung & Kardio', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Leg Press', target: 'Paha', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Cable Row', target: 'Punggung Tengah', icon: Icons.self_improvement, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Battle Rope', target: 'Full Body Kardio', icon: Icons.directions_run, iconColor: const Color(0xFFE07B39)),
-        ],
-        'Calisthenics': [
-          WorkoutItem(nama: 'Jump Rope', target: 'Kardio', icon: Icons.directions_run, iconColor: const Color(0xFFE07B39)),
-          WorkoutItem(nama: 'Box Jump', target: 'Paha & Kardio', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Plank Hold', target: 'Core', icon: Icons.self_improvement, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Bear Crawl', target: 'Full Body', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF9B59B6)),
-        ],
-      },
-      'Obesitas': {
-        'Rumah': [
-          WorkoutItem(nama: 'Diamond Pushups', target: 'Trisep & Dada', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Plank Hold', target: 'Stabilitas Inti', icon: Icons.self_improvement, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Peregangan Cat-Cow', target: 'Mobilitas Tulang Belakang', icon: Icons.accessibility_new, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Glute Bridge', target: 'Gluteus & Hamstring', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-        ],
-        'Gym': [
-          WorkoutItem(nama: 'Seated Row', target: 'Punggung', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Leg Extension', target: 'Paha Depan', icon: Icons.sports_gymnastics, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Cable Pulldown', target: 'Punggung Atas', icon: Icons.self_improvement, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Standing Calf Raise', target: 'Betis', icon: Icons.accessibility_new, iconColor: const Color(0xFFE07B39)),
-        ],
-        'Calisthenics': [
-          WorkoutItem(nama: 'Wall Push-Up', target: 'Dada & Trisep', icon: Icons.fitness_center, iconColor: const Color(0xFF4A90D9)),
-          WorkoutItem(nama: 'Seated Leg Raise', target: 'Core', icon: Icons.self_improvement, iconColor: const Color(0xFF3BB88F)),
-          WorkoutItem(nama: 'Peregangan Leher', target: 'Leher & Bahu', icon: Icons.accessibility_new, iconColor: const Color(0xFF9B59B6)),
-          WorkoutItem(nama: 'Ankle Circles', target: 'Pergelangan Kaki', icon: Icons.sports_gymnastics, iconColor: const Color(0xFFE07B39)),
-        ],
-      },
-    };
+    workoutTambahan.value = _parseItems(data['latihan_tambahan']);
+    workoutKoreksiPostur.value = _parseItems(data['latihan_koreksi_postur']);
+  }
 
-    workoutTambahan.value = tambahanMap[kat]?[tab] ?? tambahanMap['Normal']!['Rumah']!;
+  List<WorkoutItem> _parseItems(dynamic rawList) {
+    if (rawList == null || rawList is! List) return [];
+    return rawList.map((item) {
+      final m = item as Map<String, dynamic>;
+      return WorkoutItem(
+        nama: m['nama_latihan'] ?? '',
+        target: m['target_otot'] ?? '',
+        icon: _iconFromKey(m['icon_key'] ?? 'fitness_center'),
+        iconColor: _colorFromIcon(m['icon_key'] ?? ''),
+        setReps: m['set_reps'] ?? '',
+        kalori: m['kalori_estimasi'] ?? 0,
+      );
+    }).toList();
+  }
+
+  IconData _iconFromKey(String key) {
+    switch (key) {
+      case 'directions_run':   return Icons.directions_run;
+      case 'self_improvement': return Icons.self_improvement;
+      case 'accessibility_new': return Icons.accessibility_new;
+      case 'sports_gymnastics': return Icons.sports_gymnastics;
+      default:                 return Icons.fitness_center;
+    }
+  }
+
+  Color _colorFromIcon(String key) {
+    switch (key) {
+      case 'directions_run':   return const Color(0xFFE07B39);
+      case 'self_improvement': return const Color(0xFF3BB88F);
+      case 'accessibility_new': return const Color(0xFF9B59B6);
+      case 'sports_gymnastics': return const Color(0xFF3BB88F);
+      default:                 return const Color(0xFF4A90D9);
+    }
   }
 
   void onNavTap(int index) {
@@ -257,12 +187,6 @@ class WorkoutPlanController extends GetxController {
         break;
       case 1:
         Get.toNamed('/scan');
-        break;
-      case 3:
-        // Edukasi
-        break;
-      case 4:
-        // Profile
         break;
     }
   }

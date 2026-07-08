@@ -8,7 +8,9 @@ import '../../widgets/app_card.dart';
 import '../../widgets/activity_progress_bar.dart';
 import '../../widgets/feature_button.dart';
 import '../../controllers/home_controller.dart';
+import '../../controllers/notification_controller.dart';
 import '../../../routes/app_routes.dart';
+import '../tracker/tracker_input_view.dart';
 
 class HomeBody extends GetView<HomeController> {
   const HomeBody({super.key});
@@ -19,7 +21,7 @@ class HomeBody extends GetView<HomeController> {
       backgroundColor: AppTheme.bgColor(context),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
         return Column(
           children: [
@@ -120,18 +122,22 @@ class _HomeAppBar extends GetView<HomeController> {
                   size: AppDimensions.iconMD,
                 ),
               ),
-              Positioned(
-                top: 8,
-                right: 9,
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF5C5C),
-                    shape: BoxShape.circle,
+              Obx(() {
+                final hasUnread = Get.find<NotificationController>().unreadCount > 0;
+                if (!hasUnread) return const SizedBox.shrink();
+                return Positioned(
+                  top: 8,
+                  right: 9,
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF5C5C),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
             ],
           ),
           ),
@@ -236,75 +242,98 @@ class _SleepHydrationRow extends GetView<HomeController> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(AppDimensions.paddingLG),
-                decoration: BoxDecoration(
-                  color: AppTheme.cardColor(context),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${act.sleepDuration} jam',
-                            style: AppTextStyles.displayMedium.copyWith(
-                                color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 32)),
-                        const SizedBox(height: 4),
-                        Text('Durasi tidur', style: AppTextStyles.bodySmall.copyWith(color: AppColors.navInactive)),
-                      ],
-                    ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusCircle),
-                      child: LinearProgressIndicator(
-                        value: act.sleepDuration / 8,
-                        backgroundColor: AppTheme.inputBg(context),
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                        minHeight: 5,
+              child: GestureDetector(
+                onTap: () => Get.to(() => const TrackerInputView(), transition: Transition.cupertino),
+                child: Container(
+                  padding: const EdgeInsets.all(AppDimensions.paddingLG),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor(context),
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${act.sleepDuration} jam',
+                              style: AppTextStyles.displayMedium.copyWith(
+                                  color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 32)),
+                          const SizedBox(height: 4),
+                          Text('Durasi tidur', style: AppTextStyles.bodySmall.copyWith(color: AppColors.navInactive)),
+                        ],
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusCircle),
+                        child: LinearProgressIndicator(
+                          value: (act.sleepDuration / 8.0).clamp(0.0, 1.0),
+                          backgroundColor: AppTheme.inputBg(context),
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          minHeight: 5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: AppDimensions.paddingMD),
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(AppDimensions.paddingLG),
-                decoration: BoxDecoration(
-                  color: AppTheme.cardColor(context),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 72, height: 72,
-                      child: CircularProgressIndicator(
-                        value: controller.hydrationPercentage,
-                        strokeWidth: 8,
-                        backgroundColor: AppTheme.inputBg(context),
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
-                        strokeCap: StrokeCap.round,
+              child: GestureDetector(
+                onTap: () => Get.to(() => const TrackerInputView(), transition: Transition.cupertino),
+                child: Container(
+                  padding: const EdgeInsets.all(AppDimensions.paddingLG),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor(context),
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusLG),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Hidrasi hari ini', style: AppTextStyles.bodySmall.copyWith(color: AppColors.navInactive)),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${act.hydrationCurrent.toInt()} ml / ${act.hydrationTarget.toInt()} ml',
-                            style: AppTextStyles.captionStyle.copyWith(color: AppColors.navInactive),
-                          ),
-                        ],
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 72, height: 72,
+                        child: CircularProgressIndicator(
+                          value: controller.hydrationPercentage,
+                          strokeWidth: 8,
+                          backgroundColor: AppTheme.inputBg(context),
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
+                          strokeCap: StrokeCap.round,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Hidrasi hari ini', style: AppTextStyles.bodySmall.copyWith(color: AppColors.navInactive)),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${act.hydrationCurrent.toInt()} / ${act.hydrationTarget.toInt()} ml',
+                              style: AppTextStyles.captionStyle.copyWith(
+                                color: AppTheme.textPrimary(context),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -313,6 +342,7 @@ class _SleepHydrationRow extends GetView<HomeController> {
       );
     });
   }
+
 }
 
 class _ActivityScoreCard extends GetView<HomeController> {

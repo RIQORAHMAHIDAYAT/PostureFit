@@ -34,18 +34,20 @@ from typing import Dict, List, Tuple
 # Weights — sum must equal 1.0
 # ---------------------------------------------------------------------------
 CRITERIA_WEIGHTS: Dict[str, float] = {
-    "bmi":    0.40,   # paling dominan
-    "whtr":   0.35,   # rasio pinggang/tinggi = risiko metabolik
-    "lingkar": 0.15,  # lingkar perut absolut (cm)
-    "umur":   0.10,   # usia (cost: makin muda, makin bisa program intens)
+    "bmi":     0.30,   # C1: BMI
+    "whtr":    0.25,   # C2: WHtR pinggang/tinggi
+    "lingkar": 0.15,   # C3: Lingkar perut
+    "umur":    0.10,   # C4: Usia (cost)
+    "wsr":     0.20,   # C5: Waist-to-Shoulder Ratio (dari MediaPipe)
 }
 
 # Criteria type: "benefit" (higher is better) or "cost" (lower is better)
 CRITERIA_TYPE: Dict[str, str] = {
-    "bmi":    "benefit",
-    "whtr":   "benefit",
+    "bmi":     "benefit",
+    "whtr":    "benefit",
     "lingkar": "benefit",
-    "umur":   "cost",
+    "umur":    "cost",
+    "wsr":     "benefit",
 }
 
 
@@ -96,6 +98,7 @@ def calculate_saw(
     whtr: float,
     umur: int,
     lingkar_perut_cm: float,
+    wsr_visual: float = 0.70,
 ) -> Tuple[str, str, Dict[str, float]]:
     """Run the SAW calculation and return the winning category.
 
@@ -104,21 +107,13 @@ def calculate_saw(
         whtr:             Waist-to-Height Ratio.
         umur:             User age in years.
         lingkar_perut_cm: Waist circumference in cm.
+        wsr_visual:       Waist-to-Shoulder Ratio from MediaPipe CV scan.
 
     Returns:
         Tuple of (kategori_tubuh, rekomendasi_text, scores_dict).
-
-    NOTE: Parameter WSR dihapus sementara sampai model MediaPipe diintegrasikan.
-          Saat itu, tambahkan wsr sebagai parameter dan masukkan ke decision matrix.
     """
 
     # ----- 1. Build the decision matrix (one row per alternative) ----------
-    # Setiap alternatif mendapat skor mentah berdasarkan rentang nilai yang
-    # paling "cocok" untuk kategori tubuh tersebut.
-    #
-    # Contoh: "Obesitas" mendapat raw BMI = clamp(bmi_user, 30, 50)
-    # → jika bmi_user = 35, maka raw_bmi Obesitas = 35 (paling tinggi)
-    # → setelah normalisasi, Obesitas mendapat skor tertinggi untuk kriteria BMI
     alternatives: List[SawAlternative] = [
         SawAlternative(
             name="Obesitas",
@@ -126,7 +121,8 @@ def calculate_saw(
                 "bmi":     _suitability(bmi,             30.0, 50.0),
                 "whtr":    _suitability(whtr,             0.60, 1.00),
                 "lingkar": _suitability(lingkar_perut_cm, 90.0, 150.0),
-                "umur":    1.0, # Umur sama untuk semua alternatif
+                "umur":    1.0,
+                "wsr":     _suitability(wsr_visual,       0.85, 1.50),
             },
         ),
         SawAlternative(
@@ -136,6 +132,7 @@ def calculate_saw(
                 "whtr":    _suitability(whtr,             0.50, 0.59),
                 "lingkar": _suitability(lingkar_perut_cm, 75.0, 89.9),
                 "umur":    1.0,
+                "wsr":     _suitability(wsr_visual,       0.75, 0.95),
             },
         ),
         SawAlternative(
@@ -145,6 +142,7 @@ def calculate_saw(
                 "whtr":    _suitability(whtr,             0.30, 0.49),
                 "lingkar": _suitability(lingkar_perut_cm, 40.0, 74.9),
                 "umur":    1.0,
+                "wsr":     _suitability(wsr_visual,       0.40, 0.69),
             },
         ),
         SawAlternative(
@@ -154,6 +152,7 @@ def calculate_saw(
                 "whtr":    _suitability(whtr,             0.40, 0.49),
                 "lingkar": _suitability(lingkar_perut_cm, 60.0, 89.9),
                 "umur":    1.0,
+                "wsr":     _suitability(wsr_visual,       0.60, 0.74),
             },
         ),
     ]
@@ -163,8 +162,6 @@ def calculate_saw(
     max_vals = {c: max(a.raw_scores[c] for a in alternatives) for c in criteria}
 
     # ----- 3. Normalize -------------------------------------------------------
-    # Karena kita menggunakan _suitability, semua kriteria sekarang adalah "benefit"
-    # (semakin tinggi suitability semakin baik)
     for alt in alternatives:
         for c in criteria:
             if max_vals[c] != 0:

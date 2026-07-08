@@ -97,9 +97,9 @@ class OtpController extends GetxController {
 
       // Catat aktivitas registrasi berhasil
       await _activityLogService.saveLog(
-        icon: 'login',
+        icon: 'register',
         title: 'Registrasi Akun',
-        desc: 'Akun PostureFit Anda telah berhasil dibuat.',
+        desc: 'Akun PostureFit Anda berhasil dibuat dan diverifikasi.',
         email: email,
       );
 

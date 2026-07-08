@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../controllers/scan_controller.dart';
+import '../../../core/constants/app_constants.dart';
 
 /// Halaman preview gambar hasil scan postur.
 /// Mengambil bytes gambar dari ScanController (cross-platform: web & mobile).
@@ -18,6 +18,7 @@ class ImagePreviewView extends StatefulWidget {
 
 class _ImagePreviewViewState extends State<ImagePreviewView> {
   Uint8List? _imageBytes;
+  String? _imageUrl;
   final TransformationController _transformCtrl = TransformationController();
 
   @override
@@ -27,10 +28,13 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
     if (Get.isRegistered<ScanController>()) {
       _imageBytes = Get.find<ScanController>().capturedBytes.value;
     }
-    // Fallback: cek apakah dikirim lewat arguments (untuk mobile path)
+    // Cek apakah dikirim lewat arguments (untuk mobile path & network URL)
     final args = Get.arguments;
-    if (_imageBytes == null && args is Map && args['imageBytes'] is Uint8List) {
-      _imageBytes = args['imageBytes'] as Uint8List;
+    if (args is Map) {
+      _imageUrl = args['imageUrl'] as String?;
+      if (_imageBytes == null && args['imageBytes'] is Uint8List) {
+        _imageBytes = args['imageBytes'] as Uint8List;
+      }
     }
   }
 
@@ -139,12 +143,30 @@ class _ImagePreviewViewState extends State<ImagePreviewView> {
           minScale: 0.5,
           maxScale: 5.0,
           child: Center(
-            child: Image.memory(
-              bytes,
-              fit: BoxFit.contain,
-              width: double.infinity,
-              height: double.infinity,
-            ),
+            child: _imageUrl != null && _imageUrl!.isNotEmpty
+                ? Image.network(
+                    '${AppConstants.baseUrl}$_imageUrl',
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    headers: const {
+                      'ngrok-skip-browser-warning': '69420',
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.memory(
+                        bytes,
+                        fit: BoxFit.contain,
+                        width: double.infinity,
+                        height: double.infinity,
+                      );
+                    },
+                  )
+                : Image.memory(
+                    bytes,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
           ),
         ),
         // Label hint zoom

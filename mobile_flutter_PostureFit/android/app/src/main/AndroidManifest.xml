@@ -1,16 +1,23 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
     <!-- Izin internet untuk koneksi ke backend API -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Izin kamera dan galeri untuk image_picker -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" tools:replace="android:maxSdkVersion"/>
     <application
         android:label="PostureFit"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
+        
+        <!-- Tambahan: Memaksa Google Play Services mendownload model pose ML Kit otomatis -->
+        <meta-data
+            android:name="com.google.mlkit.vision.dependencies"
+            android:value="pose" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

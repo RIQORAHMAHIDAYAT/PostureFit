@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
+import '../models/user_model.dart';
 
 class AuthService {
   static String get _baseUrl => AppConstants.baseUrl;
@@ -323,10 +324,28 @@ class AuthService {
   /// Hapus token dari penyimpanan lokal.
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // Clear activity logs for the current user
+    final email = prefs.getString(AppConstants.keyUserEmail);
+    if (email != null) {
+      final key = 'activity_logs_$email';
+      await prefs.remove(key);
+      await prefs.remove('has_cleared_logs_$email');
+    }
+
     await prefs.remove(AppConstants.keyToken);
     await prefs.remove(AppConstants.keyUserId);
     await prefs.remove(AppConstants.keyUserName);
     await prefs.remove(AppConstants.keyUserEmail);
+    
+    // Clear cached user data
+    await prefs.remove('cached_user_gender');
+    await prefs.remove('cached_user_goal');
+    await prefs.remove('cached_user_picture');
+    await prefs.remove('cached_user_age');
+    await prefs.remove('cached_user_height');
+    await prefs.remove('cached_user_weight');
+    await prefs.remove('cached_user_bmi');
   }
 
   // -----------------------------------------------------------------------
@@ -355,7 +374,7 @@ class AuthService {
 
   /// Baca profil user dari cache lokal.
   /// Digunakan sebagai fallback ketika tidak ada koneksi ke backend.
-  Future<dynamic> getCachedUser() async {
+  Future<UserModel?> getCachedUser() async {
     final prefs = await SharedPreferences.getInstance();
     final cachedName  = prefs.getString(AppConstants.keyUserName);
     final cachedEmail = prefs.getString(AppConstants.keyUserEmail);
@@ -363,9 +382,8 @@ class AuthService {
     // berhasil login dan tidak ada data yang bisa ditampilkan.
     if (cachedName == null || cachedEmail == null || cachedName.isEmpty) return null;
 
-    // Import UserModel agar bisa dibuat instance-nya
-    // ignore: avoid_dynamic_calls
-    return _CachedUser(
+    return UserModel(
+      id: prefs.getString(AppConstants.keyUserId) ?? '',
       name:           cachedName,
       email:          cachedEmail,
       gender:         prefs.getString('cached_user_gender'),
@@ -383,30 +401,4 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(AppConstants.keyToken);
   }
-}
-
-/// Kelas sederhana untuk membawa data user dari cache SharedPreferences.
-/// Tidak perlu hiting database — hanya container data.
-class _CachedUser {
-  final String name;
-  final String email;
-  final String? gender;
-  final String? goal;
-  final String? profilePicture;
-  final int? age;
-  final double? height;
-  final double? weight;
-  final double? bmi;
-
-  const _CachedUser({
-    required this.name,
-    required this.email,
-    this.gender,
-    this.goal,
-    this.profilePicture,
-    this.age,
-    this.height,
-    this.weight,
-    this.bmi,
-  });
 }

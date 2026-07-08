@@ -5,6 +5,8 @@ import '../presentation/controllers/workout_plan_controller.dart';
 import '../presentation/controllers/education_controller.dart';
 import '../presentation/controllers/profile_controller.dart';
 
+import '../presentation/controllers/notification_controller.dart';
+
 class MainBinding extends Bindings {
   @override
   void dependencies() {
@@ -13,6 +15,7 @@ class MainBinding extends Bindings {
     Get.lazyPut<HomeController>(() => HomeController());
     Get.put<EducationController>(EducationController());
     Get.put<ProfileController>(ProfileController());
+    Get.put<NotificationController>(NotificationController(), permanent: false);
     Get.put<MainController>(MainController());
   }
 }

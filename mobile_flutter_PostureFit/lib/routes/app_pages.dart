@@ -12,7 +12,7 @@ import '../bindings/workout_plan_binding.dart';
 import '../bindings/education_binding.dart';
 import '../bindings/profile_binding.dart';
 import '../bindings/edit_profile_binding.dart';
-import '../bindings/notification_binding.dart';
+
 import '../presentation/pages/login/login_view.dart';
 import '../presentation/pages/register/register_view.dart';
 import '../presentation/pages/main/main_view.dart';
@@ -20,6 +20,7 @@ import '../presentation/pages/home/home_view.dart';
 import '../presentation/pages/scan/scan_view.dart';
 import '../presentation/pages/scan/result_view.dart';
 import '../presentation/pages/scan/analysis_result_view.dart';
+import '../presentation/pages/scan/realtime_camera_view.dart';
 import '../presentation/pages/workout_plan/workout_plan_view.dart';
 import '../presentation/pages/education/education_view.dart';
 import '../presentation/pages/profile/profile_view.dart';
@@ -41,6 +42,7 @@ import '../presentation/pages/forgot_password/forgot_password_view.dart';
 import '../presentation/pages/forgot_password/reset_otp_view.dart';
 import '../presentation/pages/forgot_password/new_password_view.dart';
 import '../presentation/pages/privacy_policy/privacy_policy_view.dart';
+import '../presentation/pages/education/education_detail_view.dart';
 import 'app_routes.dart';
 
 
@@ -59,7 +61,7 @@ class AppPages {
     GetPage(name: AppRoutes.workoutPlan, page: () => const WorkoutPlanView(), binding: WorkoutPlanBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.education, page: () => const EducationView(), binding: EducationBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.profile, page: () => const ProfileView(), binding: ProfileBinding(), transition: Transition.cupertino),
-    GetPage(name: AppRoutes.notification, page: () => const NotificationView(), binding: NotificationBinding(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.notification, page: () => const NotificationView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.imagePreview, page: () => const ImagePreviewView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.editProfile, page: () => const EditProfileView(), binding: EditProfileBinding(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.activityLog, page: () => const ActivityLogView(), binding: ActivityLogBinding(), transition: Transition.cupertino),
@@ -71,5 +73,7 @@ class AppPages {
     GetPage(name: AppRoutes.resetOtpVerification, page: () => const ResetOtpView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.newPassword, page: () => const NewPasswordView(), transition: Transition.cupertino),
     GetPage(name: AppRoutes.privacyPolicy, page: () => const PrivacyPolicyView(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.realtimeCamera, page: () => const RealtimeCameraView(), transition: Transition.cupertino),
+    GetPage(name: AppRoutes.educationDetail, page: () => const EducationDetailView(), transition: Transition.cupertino),
   ];
 }

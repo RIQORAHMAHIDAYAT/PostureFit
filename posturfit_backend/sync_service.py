@@ -26,7 +26,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from sqlalchemy.orm import Session
 
 from database import SessionLocal
-from models import EducationArticle, User, Notification
+from models import EducationArticle, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -318,16 +318,14 @@ async def sync_education_from_mongo() -> dict:
                     db.add(article)
                     added += 1
 
-                    # Tambahkan notifikasi untuk semua user
-                    users = db.query(User.id).all()
-                    for u in users:
-                        notif = Notification(
-                            user_id=u[0],
-                            title=f"Artikel Baru: {judul}",
-                            message=ringkasan[:100] + ("..." if len(ringkasan) > 100 else ""),
-                            type="education",
-                        )
-                        db.add(notif)
+                    # Tambahkan satu notifikasi GLOBAL (tanpa user_id) —
+                    # konsep sama dengan artikel: semua user bisa lihat notif yang sama.
+                    notif = Notification(
+                        title=f"Artikel Baru: {judul}",
+                        message=ringkasan[:120] + ("..." if len(ringkasan) > 120 else ""),
+                        type="education",
+                    )
+                    db.add(notif)
 
             except Exception as e:
                 logger.error(f"[SyncService] Gagal memproses dokumen: {e}", exc_info=True)

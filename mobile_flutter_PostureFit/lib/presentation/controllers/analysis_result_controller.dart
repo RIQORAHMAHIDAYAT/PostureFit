@@ -7,6 +7,10 @@ class AnalysisResultController extends GetxController {
   late final double umur;
   late final double lingkarPerut;
   late final int lingkungan; // 0=Rumah, 1=Gym, 2=Calisthenics
+  late final String? imageUrl;           // Foto asli
+  late final String? annotatedImageUrl;  // Foto + skeleton overlay MediaPipe
+  late final String posturLabel;         // Hasil klasifikasi YOLOv8
+  late final double posturConfidence;    // Confidence score YOLOv8 (0.0–1.0)
 
   final RxDouble bmi        = 0.0.obs;
   final RxString kategori   = ''.obs;
@@ -19,11 +23,15 @@ class AnalysisResultController extends GetxController {
   void onInit() {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>? ?? {};
-    tinggiBadan = (args['tinggi'] ?? 170.0).toDouble();
-    beratBadan  = (args['berat']  ?? 70.0).toDouble();
-    umur        = (args['umur']   ?? 25.0).toDouble();
-    lingkarPerut = (args['lingkar'] ?? 80.0).toDouble();
-    lingkungan  = (args['lingkungan'] ?? 0) as int;
+    tinggiBadan  = (args['tinggi']   ?? 170.0).toDouble();
+    beratBadan   = (args['berat']    ?? 70.0).toDouble();
+    umur         = (args['umur']     ?? 25.0).toDouble();
+    lingkarPerut = (args['lingkar']  ?? 80.0).toDouble();
+    lingkungan   = (args['lingkungan'] ?? 0) as int;
+    imageUrl           = args['image_url']          as String?;
+    annotatedImageUrl  = args['annotated_image_url'] as String?;
+    posturLabel        = args['postur_label']        as String? ?? 'standing';
+    posturConfidence   = (args['postur_confidence']  as num?)?.toDouble() ?? 0.0;
 
     // ── Prioritaskan data dari server ──────────────────────────────────────
     final serverBmi      = args['bmi'];
@@ -42,6 +50,63 @@ class AnalysisResultController extends GetxController {
 
     // Selalu generate list rekomendasi UI berdasarkan kategori
     _generateRekomendasi();
+  }
+
+  // ── Postur Helpers ─────────────────────────────────────────────────────────
+
+  /// Teks display postur yang ramah (Indonesian)
+  String get posturDisplayName {
+    switch (posturLabel.toLowerCase()) {
+      case 'standing':  return 'Berdiri Tegak';
+      case 'bending':   return 'Membungkuk';
+      case 'sitting':   return 'Duduk';
+      case 'squatting': return 'Jongkok';
+      case 'lying':     return 'Berbaring';
+      default:          return posturLabel;
+    }
+  }
+
+  /// Catatan / peringatan terkait postur
+  String get posturCatatan {
+    switch (posturLabel.toLowerCase()) {
+      case 'bending':
+        return '⚠️ Terdeteksi kebiasaan membungkuk. Tambahkan latihan penguatan punggung atas dan peregangan dada.';
+      case 'sitting':
+        return '⚠️ Postur duduk terlalu lama terdeteksi. Prioritaskan peregangan hip flexor dan penguatan glute.';
+      case 'squatting':
+        return '⚠️ Posisi jongkok terdeteksi. Perhatikan keseimbangan dan kekuatan betis saat berlatih.';
+      case 'lying':
+        return '⚠️ Posisi rebah terdeteksi saat scan. Pastikan Anda berdiri tegak saat scan postur berikutnya.';
+      default:
+        return 'Postur Anda terdeteksi normal (berdiri tegak). Pertahankan postur baik ini!';
+    }
+  }
+
+  /// Apakah postur bermasalah (bukan standing normal)
+  bool get isPosturBermasalah => posturLabel.toLowerCase() != 'standing';
+
+  /// Warna badge postur
+  int get posturColor {
+    switch (posturLabel.toLowerCase()) {
+      case 'standing':  return 0xFF3BB88F; // hijau
+      case 'bending':   return 0xFFE07B39; // oranye
+      case 'sitting':   return 0xFF9B59B6; // ungu
+      case 'squatting': return 0xFF4A90D9; // biru
+      case 'lying':     return 0xFFE05252; // merah
+      default:          return 0xFF4A90D9;
+    }
+  }
+
+  /// Icon postur
+  String get posturIconName {
+    switch (posturLabel.toLowerCase()) {
+      case 'standing':  return 'accessibility';
+      case 'bending':   return 'warning';
+      case 'sitting':   return 'chair';
+      case 'squatting': return 'fitness_center';
+      case 'lying':     return 'airline_seat_flat';
+      default:          return 'accessibility';
+    }
   }
 
 
@@ -180,13 +245,14 @@ class AnalysisResultController extends GetxController {
         'berat': beratBadan,
         'umur': umur,
         'lingkar': lingkarPerut,
-        'lingkungan': lingkungan, // 0=Rumah, 1=Gym, 2=Calisthenics
+        'lingkungan': lingkungan,   // 0=Rumah, 1=Gym, 2=Calisthenics
+        'postur_label': posturLabel, // Teruskan ke WorkoutPlanController
       },
     );
   }
 
   void onLihatHasil() {
-    Get.toNamed(AppRoutes.imagePreview);
+    Get.toNamed(AppRoutes.imagePreview, arguments: {'imageUrl': imageUrl});
   }
   void onUbahData() => Get.back();
   void onBack() => Get.back();

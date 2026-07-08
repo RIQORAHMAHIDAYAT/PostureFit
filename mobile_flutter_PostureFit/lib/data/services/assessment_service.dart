@@ -27,8 +27,10 @@ class AssessmentService {
   }
 
   // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // POST /api/assessment/generate
-  // Kirim data form vitality ke backend:
+  // Kirim data form vitality ke backend menggunakan MultipartRequest:
+  //   - file: berkas gambar hasil scan postur
   //   - tinggi, berat, umur, lingkar → diproses SAW engine
   //   - fokus_pilihan               → disimpan sebagai pilihan user
   // Return: {bmi, kategori_tubuh, rekomendasi, saw_scores}
@@ -38,28 +40,41 @@ class AssessmentService {
     required double berat,
     required int umur,
     required double lingkar,
-    String imageUrl = '',
+    String imagePath = '',
+    List<int>? imageBytes,
     String? fokusPilihan,
   }) async {
-    final headers = await _authHeaders;
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(AppConstants.keyToken) ?? '';
 
-    final body = <String, dynamic>{
-      'tinggi': tinggi,
-      'berat': berat,
-      'umur': umur,
-      'lingkar': lingkar,
-      'image_url': imageUrl,
-    };
+    final uri = Uri.parse('$_baseUrl/api/assessment/generate');
+    final request = http.MultipartRequest('POST', uri);
+
+    // Set Authorization header
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+    request.headers['ngrok-skip-browser-warning'] = '69420';
+
+    // Tambahkan form fields
+    request.fields['tinggi'] = tinggi.toString();
+    request.fields['berat'] = berat.toString();
+    request.fields['umur'] = umur.toString();
+    request.fields['lingkar'] = lingkar.toString();
     if (fokusPilihan != null && fokusPilihan.isNotEmpty) {
-      body['fokus_pilihan'] = fokusPilihan;
+      request.fields['fokus_pilihan'] = fokusPilihan;
     }
 
-    final response = await http.post(
-      Uri.parse('$_baseUrl/api/assessment/generate'),
-      headers: headers,
-      body: jsonEncode(body),
-    );
+    // Tambahkan file gambar
+    if (imagePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+    } else if (imageBytes != null && imageBytes.isNotEmpty) {
+      request.files.add(http.MultipartFile.fromBytes('file', imageBytes, filename: 'scan.jpg'));
+    } else {
+      throw Exception('Berkas gambar scan tidak ditemukan.');
+    }
 
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
     final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode == 200) {
