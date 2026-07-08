@@ -99,6 +99,7 @@ class ResultController extends GetxController {
           'rekomendasi':   result['rekomendasi'],
           'saw_scores':    result['saw_scores'],
           'image_url':     result['image_url'],
+
           // Hasil deteksi postur dari model YOLOv8
           'postur_label':       result['postur_label'] ?? 'standing',
           'postur_confidence':  result['postur_confidence'] ?? 0.0,

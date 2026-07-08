@@ -72,6 +72,7 @@ def _midpoint(a, b) -> np.ndarray:
 
 
 # ── MODIFIKASI: Gunakan model .pt untuk Klasifikasi Postur ──
+
 def predict_posture_yolo(image_cv) -> tuple[str, float]:
     """Menggunakan model YOLOv8 .pt untuk memprediksi kelas gerakan tubuh.
     
@@ -97,6 +98,26 @@ def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
     Returns:
         (wsr_visual, posture_label, posture_confidence, annotated_save_path)
     """
+
+def predict_posture_yolo(image_cv) -> str:
+    """Menggunakan model YOLOv8 .pt untuk memprediksi kelas gerakan tubuh."""
+    if yolo_model is None:
+        return "standing"  # Fallback jika model gagal termuat
+        
+    # Ultralytics secara otomatis menangani preprocessing (resize ke 224, normalisasi, dll.)
+    # verbose=False digunakan agar terminal tidak penuh dengan log prediksi harian
+    results = yolo_model.predict(image_cv, verbose=False)
+    
+    # Ambil nama kelas dengan skor tertinggi
+    top1_idx = results[0].probs.top1
+    posture_name = results[0].names[top1_idx]
+    
+    return posture_name
+
+
+def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
+    """Proses bytes gambar dengan MediaPipe dan YOLOv8 .pt."""
+
     if pose_engine is None:
         raise ValueError(f"Fitur CV / MediaPipe Pose tidak aktif di server ini: '{pose_error_msg}'.")
 
@@ -114,7 +135,14 @@ def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
         raise ValueError("Gagal mendeteksi tubuh. Pastikan seluruh badan terlihat di kamera dengan pencahayaan yang cukup.")
 
     # 2. Klasifikasi Postur Menggunakan Model YOLOv8 .pt
+
     posture, posture_confidence = predict_posture_yolo(image)
+
+    posture = predict_posture_yolo(image)
+
+    # Postur akan diteruskan ke sistem rekomendasi (dapat memicu Latihan Koreksi Postur jika 'bending' dll)
+
+
 
     # 3. Ekstraksi Metrik Koordinat MediaPipe
     landmarks = mp_results.pose_landmarks.landmark
@@ -132,6 +160,7 @@ def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
 
     if sh_width == 0:
         raise ValueError("Deteksi lebar bahu tidak valid, coba ambil ulang foto.")
+
 
     # 4. Menggambar skeleton overlay pada salinan gambar tersendiri (annotated)
     annotated_image = image.copy()
@@ -152,6 +181,7 @@ def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
     except Exception as draw_err:
         print(f"[Warning] Gagal menggambar landmark: {draw_err}")
 
+
     # Simpan gambar asli (tanpa anotasi)
     cv2.imwrite(save_path, image)
 
@@ -162,6 +192,12 @@ def extract_pose_metrics(image_bytes: bytes, bmi: float, save_path: str):
 
     wsr_visual = visual_waist_score / sh_width
     return wsr_visual, posture, posture_confidence, annotated_save_path
+
+    cv2.imwrite(save_path, image)
+
+    wsr_visual = visual_waist_score / sh_width
+    return wsr_visual, posture
+
 
 
 # ---------------------------------------------------------------------------
@@ -218,6 +254,7 @@ async def generate_recommendation(
     whtr = calculate_whtr(lingkar, tinggi)
 
     try:
+
         # Menangkap hasil WSR, jenis postur, confidence, dan path gambar teranotasi
         wsr_visual, postur_terdeteksi, postur_confidence, annotated_path = extract_pose_metrics(
             file_content, bmi, file_path
@@ -225,6 +262,10 @@ async def generate_recommendation(
         # URL gambar teranotasi (skeleton) — ditampilkan di hasil analisis Flutter
         annotated_filename = os.path.basename(annotated_path)
         annotated_image_url = f"/static/uploads/{annotated_filename}"
+
+        # Menangkap hasil WSR dan jenis postur dari fungsi pemroses gambar
+        wsr_visual, postur_terdeteksi = extract_pose_metrics(file_content, bmi, file_path)
+
     except ValueError as ve:
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -290,9 +331,11 @@ async def generate_recommendation(
             rekomendasi=rekomendasi_teks,
             saw_scores=saw_scores,
             image_url=image_url,
+
             postur_label=postur_terdeteksi,          # Label postur dari YOLOv8
             postur_confidence=round(postur_confidence, 4),  # Confidence score YOLOv8
             annotated_image_url=annotated_image_url, # Foto + skeleton overlay MediaPipe
+
         )
     )
 

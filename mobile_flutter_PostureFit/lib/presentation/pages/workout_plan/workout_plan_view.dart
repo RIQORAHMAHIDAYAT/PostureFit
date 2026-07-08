@@ -31,8 +31,10 @@ class WorkoutPlanBody extends GetView<WorkoutPlanController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _StatRow(),
+
                         const SizedBox(height: 16),
                         _PosturInfoCard(),
+
                         const SizedBox(height: 20),
                         _WorkoutUtamaCard(),
                         Obx(() {

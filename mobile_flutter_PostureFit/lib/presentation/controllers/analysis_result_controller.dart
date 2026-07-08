@@ -7,6 +7,7 @@ class AnalysisResultController extends GetxController {
   late final double umur;
   late final double lingkarPerut;
   late final int lingkungan; // 0=Rumah, 1=Gym, 2=Calisthenics
+
   late final String? imageUrl;           // Foto asli
   late final String? annotatedImageUrl;  // Foto + skeleton overlay MediaPipe
   late final String posturLabel;         // Hasil klasifikasi YOLOv8
@@ -23,6 +24,7 @@ class AnalysisResultController extends GetxController {
   void onInit() {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>? ?? {};
+
     tinggiBadan  = (args['tinggi']   ?? 170.0).toDouble();
     beratBadan   = (args['berat']    ?? 70.0).toDouble();
     umur         = (args['umur']     ?? 25.0).toDouble();
@@ -33,7 +35,6 @@ class AnalysisResultController extends GetxController {
     posturLabel        = args['postur_label']        as String? ?? 'standing';
     posturConfidence   = (args['postur_confidence']  as num?)?.toDouble() ?? 0.0;
 
-    // ── Prioritaskan data dari server ──────────────────────────────────────
     final serverBmi      = args['bmi'];
     final serverKategori = args['kategori_tubuh'] as String?;
     final serverRek      = args['rekomendasi']   as String?;
@@ -52,7 +53,7 @@ class AnalysisResultController extends GetxController {
     _generateRekomendasi();
   }
 
-  // ── Postur Helpers ─────────────────────────────────────────────────────────
+
 
   /// Teks display postur yang ramah (Indonesian)
   String get posturDisplayName {

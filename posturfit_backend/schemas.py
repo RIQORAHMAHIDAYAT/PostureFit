@@ -168,6 +168,11 @@ class AssessmentResult(BaseModel):
     postur_label:      Optional[str]  = None  # Hasil klasifikasi YOLOv8: standing/bending/sitting/squatting/lying
     postur_confidence: Optional[float]= None  # Confidence score top-1 dari YOLOv8 (0.0–1.0)
     annotated_image_url: Optional[str] = None # URL foto hasil anotasi skeleton MediaPipe
+    bmi:            float
+    kategori_tubuh: str                  # Kurus / Normal / Gemuk / Obesitas
+    rekomendasi:    str
+    saw_scores:     Optional[dict] = None
+    image_url:      Optional[str]  = None
 
 
 class AssessmentResponse(BaseModel):
